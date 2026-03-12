@@ -1,0 +1,10 @@
+{
+  "appId": "com.capacitor.callmanager.example",
+  "appName": "ExampleApp",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false
+    }
+  }
+}

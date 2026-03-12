@@ -24,7 +24,7 @@ android {
     namespace "com.capacitor.callmanager"
     compileSdk 34
     defaultConfig {
-        minSdk 31
+        minSdk 24
         targetSdk 34
     }
     buildTypes {

@@ -106,5 +106,12 @@ const { contacts } = await CallManager.getContacts({ search: 'John' });
 
 ---
 
+## ⚠️ Google Play Store Policies 
+> [!WARNING]
+> This plugin requests **`READ_CALL_LOG`** and **`SYSTEM_ALERT_WINDOW`** (Overlay) permissions. 
+> Google Play heavily restricts the use of these permissions. You will likely need to submit an advanced permissions declaration during your app rollout proving that your app is an essential phone handler or caller ID application. If your app does not strictly require these features for its core purpose, your app **will be rejected** from the Play Store.
+
+---
+
 ## 📝 License
 MIT
