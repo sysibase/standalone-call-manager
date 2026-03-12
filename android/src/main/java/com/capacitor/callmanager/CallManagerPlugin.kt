@@ -267,6 +267,65 @@ class CallManagerPlugin : Plugin() {
         } catch (e: Exception) { call.reject("UNAVAILABLE", e.message, e) }
     }
 
+    @PluginMethod
+    fun showOverlay(call: PluginCall) {
+        val number = call.getString("number", "") ?: ""
+        val name = call.getString("name", "") ?: ""
+        val duration = call.getInt("duration", 0) ?: 0
+        val mode = call.getString("mode", "AFTER_CALL") ?: "AFTER_CALL"
+        
+        launchCallOverlay(number, name, duration, mode)
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun hideOverlay(call: PluginCall) {
+        CallOverlayService.stop(context)
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun getPendingSubmissions(call: PluginCall) {
+        val prefs = context.getSharedPreferences("CallManagerPending", android.content.Context.MODE_PRIVATE)
+        val pending = prefs.getStringSet("pending_submissions", mutableSetOf()) ?: mutableSetOf()
+        
+        val result = JSObject()
+        val array = com.getcapacitor.JSArray()
+        pending.forEach { 
+            try {
+                array.put(JSObject(it))
+            } catch (e: Exception) {
+                Log.e("CallManager", "Failed to parse pending submission: $it", e)
+            }
+        }
+        result.put("submissions", array)
+        call.resolve(result)
+    }
+
+    @PluginMethod
+    fun clearPendingSubmissions(call: PluginCall) {
+        val prefs = context.getSharedPreferences("CallManagerPending", android.content.Context.MODE_PRIVATE)
+        prefs.edit().remove("pending_submissions").apply()
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun setBackgroundServiceEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", true) ?: true
+        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("background_enabled", enabled).apply()
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun isBackgroundServiceEnabled(call: PluginCall) {
+        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+        val enabled = prefs.getBoolean("background_enabled", true)
+        val res = JSObject()
+        res.put("enabled", enabled)
+        call.resolve(res)
+    }
+
     private fun getContactNameByNumber(phoneNumber: String): String? {
         if (phoneNumber.isBlank()) return null
         val uri = Uri.withAppendedPath(android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber))

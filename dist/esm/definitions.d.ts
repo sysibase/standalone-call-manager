@@ -122,6 +122,42 @@ export interface CallManagerPlugin {
     stopRecording(): Promise<{
         filePath: string;
     }>;
+    /**
+     * Retrieve any overlay results that were saved while the app was closed (Android only).
+     */
+    getPendingSubmissions(): Promise<{
+        submissions: CallOverlaySubmittedPayload[];
+    }>;
+    /**
+     * Clear the local storage of pending submissions (Android only).
+     */
+    clearPendingSubmissions(): Promise<void>;
+    /**
+     * Enable or disable the background call receiver (Android only).
+     * If disabled, overlays will ONLY appear if the app is currently running.
+     */
+    setBackgroundServiceEnabled(options: {
+        enabled: boolean;
+    }): Promise<void>;
+    /**
+     * Check if the background service is currently enabled.
+     */
+    isBackgroundServiceEnabled(): Promise<{
+        enabled: boolean;
+    }>;
+    /**
+     * Manually trigger the CRM overlay (Android only).
+     */
+    showOverlay(options: {
+        number: string;
+        name?: string;
+        duration?: number;
+        mode?: 'DURING_CALL' | 'AFTER_CALL';
+    }): Promise<void>;
+    /**
+     * Manually dismiss any active overlay (Android only).
+     */
+    hideOverlay(): Promise<void>;
     /** Listens for an incoming ringing call */
     addListener(eventName: 'callIncoming', listenerFunc: (data: {
         number: string;

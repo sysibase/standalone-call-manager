@@ -1,0 +1,15 @@
+# Exclude development files from NPM package
+.github/
+example/
+src/
+tsconfig.json
+rollup.config.mjs
+.prettierrc
+.eslintrc.json
+scripts/
+*.md
+!README.md
+!android/
+!dist/
+!package.json
+!LICENSE

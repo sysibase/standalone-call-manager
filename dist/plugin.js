@@ -71,6 +71,36 @@ var CapacitorCallManager = (function (exports, core) {
                 throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
             });
         }
+        getPendingSubmissions() {
+            return __awaiter(this, void 0, void 0, function* () {
+                throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+            });
+        }
+        clearPendingSubmissions() {
+            return __awaiter(this, void 0, void 0, function* () {
+                throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+            });
+        }
+        setBackgroundServiceEnabled(_options) {
+            return __awaiter(this, void 0, void 0, function* () {
+                throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+            });
+        }
+        isBackgroundServiceEnabled() {
+            return __awaiter(this, void 0, void 0, function* () {
+                throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+            });
+        }
+        showOverlay(_options) {
+            return __awaiter(this, void 0, void 0, function* () {
+                throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+            });
+        }
+        hideOverlay() {
+            return __awaiter(this, void 0, void 0, function* () {
+                throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+            });
+        }
     }
 
     exports.CallType = void 0;

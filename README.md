@@ -1,115 +1,131 @@
 # Capacitor Call Manager 📱
 
-A powerful standalone Capacitor plugin specifically for **Android** that provides comprehensive telephony features including Call Logs, Contacts, and a sophisticated CRM Overlay system.
+[![NPM Version](https://img.shields.io/npm/v/capacitor-call-manager.svg)](https://www.npmjs.com/package/capacitor-call-manager)
+[![Android Support](https://img.shields.io/badge/platform-android-brightgreen.svg)](https://developer.android.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A powerful, standalone Capacitor plugin for **Android** that provides comprehensive telephony features. Perfect for building Lead Management, CRM, or Call Identification applications.
 
 ---
 
-## 🚀 Features
+## 🚀 Key Features
 
-- 📞 **Call Logs**: Retrieve full call history with contact name lookup and filtering.
-- 👥 **Contacts**: High-speed contact list access with search.
-- 📱 **CRM Overlay**: 
-    - **During Call Badge**: Floating indicator for active counseling sessions.
-    - **After Call Form**: Professional form for quick notes and interest status.
-- 🎙️ **Recording**: Experimental call recording.
-- 🔊 **Call Events**: Detect incoming, started, and ended calls in real-time.
+*   📞 **Call Logs**: High-performance retrieval of device call history with advanced filtering.
+*   👥 **Contacts Access**: Fast contact list fetching with integrated search.
+*   🖼️ **CRM Overlay**: 
+    *   **Persistent Design**: Works globally even if the app is force-closed or the phone is restarted.
+    *   **Customizable UI**: Completely override the native design with your own branding.
+    *   **Data Protection**: Native queuing ensures lead data is never lost during offline sessions.
+*   🔄 **Hybrid Mode**: Easily toggle between Global Background mode and App-Only foreground mode.
+*   🎙️ **Experimental Recording**: Built-in support for native call recording.
 
 ---
 
-## 📦 Step-by-Step Installation
+## 📦 Installation
 
-### 1. Install the Package
-Run the following command in your project root:
 ```bash
 npm install capacitor-call-manager
+npx cap sync
 ```
-
-### 2. Platform Configuration
-
-#### Android Setup
-No Java/Kotlin code is required! Capacitor 6+ handles `@CapacitorPlugin` auto-registration completely. 
-
-**Requirements:**
-- Android 12+ (API 31 and above).
-
-**Overlay Permission**:
-The user must manually grant "Display over other apps" for the CRM form to appear natively during/after calls. Use `CallManager.requestOverlayPermission()` to prompt them.
 
 ---
 
-## 🛠️ Usage Guide
+## 🛠️ Quick Start
 
-### 1. Initialize & Request Permissions
-Always check and request permissions before accessing telephony data.
+### 1. Permissions
+Add the following to your `AndroidManifest.xml` if not already present:
+```xml
+<uses-permission android:name="android.permission.READ_CALL_LOG" />
+<uses-permission android:name="android.permission.READ_CONTACTS" />
+<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+```
 
+### 2. Basic Setup (Telephony)
 ```typescript
 import { CallManager } from 'capacitor-call-manager';
 
-async function setupTelephony() {
+async function startPlugin() {
+  // Check and Request Permissions
   const status = await CallManager.requestPermissions();
   
-  // Note: Overlay requires a separate system intent on Android
   if (status.overlay !== 'granted') {
+    // Required for the CRM Overlay UI
     await CallManager.requestOverlayPermission();
   }
+
+  // Start the background listener
+  await CallManager.startCallListener();
 }
 ```
 
-### 2. Monitoring Call Events
-Start the listener to receive real-time updates and trigger the CRM overlay.
+---
 
+## 📱 CRM Overlay Guide
+
+The CRM Overlay is a floating UI that appears during or after calls.
+
+### Toggle Background Behavior
 ```typescript
-// Start the native broadcast receiver
-await CallManager.startCallListener();
+// Enable Global Mode (Works even when app is closed) - Default
+await CallManager.setBackgroundServiceEnabled({ enabled: true });
 
-// Handle call completion
-CallManager.addListener('callEnded', (data) => {
-  console.log(`Call with ${data.number} ended. Duration: ${data.duration}s`);
-});
-
-// Handle CRM Form submission from Overlay
-CallManager.addListener('callOverlaySubmitted', (data) => {
-  console.log('Counseling Details Saved:', data.status, data.notes);
-  // Sync with your API here
-});
+// Disable Global Mode (Overlays will ONLY appear if app is open)
+await CallManager.setBackgroundServiceEnabled({ enabled: false });
 ```
 
-### 3. Fetching Data
-
-#### Call Logs
+### Capturing Submissions
 ```typescript
-const { logs } = await CallManager.getCallLogs({ 
-  limit: 20, 
-  type: 'MISSED',
-  date: 'TODAY' 
+CallManager.addListener('callOverlaySubmitted', async (data) => {
+  console.log('Lead Details:', data.notes, data.status);
+  // Send to your backend
+  await myApi.saveLead(data);
 });
-```
 
-#### Contacts
-```typescript
-const { contacts } = await CallManager.getContacts({ search: 'John' });
+// Sync data captured while the app was closed
+const { submissions } = await CallManager.getPendingSubmissions();
+if (submissions.length > 0) {
+  await myApi.bulkSave(submissions);
+  await CallManager.clearPendingSubmissions(); // Clear queue after sync
+}
 ```
 
 ---
 
-## 🛡️ Platform Limitations
+## 🎨 UI Customization
 
-| Feature | Android |
-| :--- | :---: |
-| Call Logs | ✅ |
-| CRM Overlay | ✅ |
-| Contacts | ✅ |
-| Initiate Call | ✅ |
-| Recording | ✅ |
-
-*Note: iOS is not supported.*
+You can completely replace the native UI with your own brand. 
+Check out the [**Customization Guide**](./brain/CUSTOM_UI.md) to learn how to override the XML layouts.
 
 ---
 
-## ⚠️ Google Play Store Policies 
-> [!WARNING]
-> This plugin requests **`READ_CALL_LOG`** and **`SYSTEM_ALERT_WINDOW`** (Overlay) permissions. 
-> Google Play heavily restricts the use of these permissions. You will likely need to submit an advanced permissions declaration during your app rollout proving that your app is an essential phone handler or caller ID application. If your app does not strictly require these features for its core purpose, your app **will be rejected** from the Play Store.
+## 📚 API Reference
+
+| Method | Description | Platform |
+| :--- | :--- | :---: |
+| `getCallLogs(options)` | Retrieve device call history. | Android |
+| `getContacts(search)` | Search and fetch contacts. | Android |
+| `showOverlay(data)` | Manually trigger the CRM popup. | Android |
+| `hideOverlay()` | Close the active overlay. | Android |
+| `startRecording()` | Start experimental call recording. | Android |
+| `getPendingSubmissions()` | Retrieve submissions from offline mode. | Android |
+
+---
+
+## 🆘 Troubleshooting
+
+### Overlay not appearing?
+1.  Ensure you have called `requestOverlayPermission()`. Users must manually toggle "Display over other apps".
+2.  Ensure `startCallListener()` was called at least once in the app's lifecycle.
+
+### Background service stops?
+Android battery optimization may kill background services. For mission-critical lead management, instruct users to set the app's battery usage to "Unrestricted" in System Settings.
+
+---
+
+## ⚠️ Google Play Warning
+This plugin uses high-risk permissions (`READ_CALL_LOG`). Ensure your app complies with Google's Core Functionality policy for Phone/Caller ID apps to avoid rejection.
 
 ---
 

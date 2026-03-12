@@ -31,14 +31,65 @@ class CallStateReceiver : BroadcastReceiver() {
                 }
                 callStartTime = System.currentTimeMillis(); lastState = TelephonyManager.EXTRA_STATE_OFFHOOK
                 plugin?.emitCallStarted(incomingNumber, null, callStartTime)
+                
+                // If the app is killed completely, the plugin is null, but we still want the overlay.
+                if (plugin == null) {
+                    launchNativeOverlayTrigger(context, incomingNumber, 0, "DURING_CALL")
+                }
             }
             TelephonyManager.EXTRA_STATE_IDLE -> {
                 val wasOffhook = lastState == TelephonyManager.EXTRA_STATE_OFFHOOK
                 val wasRinging = lastState == TelephonyManager.EXTRA_STATE_RINGING
-                if (wasOffhook) plugin?.emitCallEnded(incomingNumber, null, callStartTime, System.currentTimeMillis())
-                else if (wasRinging && isIncoming) plugin?.emitCallEnded(incomingNumber, null, 0L, System.currentTimeMillis())
+                
+                if (wasOffhook) {
+                    val endTime = System.currentTimeMillis()
+                    val duration = ((endTime - callStartTime) / 1000).toInt()
+                    plugin?.emitCallEnded(incomingNumber, null, callStartTime, endTime)
+                    
+                    if (plugin == null) {
+                        launchNativeOverlayTrigger(context, incomingNumber, duration, "AFTER_CALL")
+                    }
+                } else if (wasRinging && isIncoming) {
+                    plugin?.emitCallEnded(incomingNumber, null, 0L, System.currentTimeMillis())
+                } else {
+                    CallOverlayService.stop(context)
+                }
+                
                 lastState = TelephonyManager.EXTRA_STATE_IDLE; incomingNumber = ""; callStartTime = 0L; isIncoming = false
             }
+        }
+    }
+
+    private fun launchNativeOverlayTrigger(context: Context, number: String, duration: Int, mode: String) {
+        val prefs = context.getSharedPreferences("CallManagerConfig", Context.MODE_PRIVATE)
+        val backgroundEnabled = prefs.getBoolean("background_enabled", true)
+        
+        if (!backgroundEnabled) {
+            Log.d("CallManager", "Background service disabled, skipping native overlay.")
+            return
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(context)) return
+        
+        // Native fallback contact fetching since it's unlinked from Cap runtime context
+        var contactName = ""
+        if (number.isNotBlank()) {
+             val uri = android.net.Uri.withAppendedPath(android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI, android.net.Uri.encode(number))
+             val cursor = context.contentResolver.query(uri, arrayOf(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME), null, null, null)
+             cursor?.use { if (it.moveToFirst()) contactName = it.getString(it.getColumnIndexOrThrow(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME)) }
+        }
+
+        val intent = Intent(context, CallOverlayService::class.java).apply {
+            putExtra("number", number)
+            putExtra("name", contactName)
+            putExtra("duration", duration)
+            putExtra("mode", mode)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
         }
     }
 }

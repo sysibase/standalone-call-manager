@@ -54,11 +54,19 @@ window.customElements.define(
           <button class="button" id="btn-overlay">Request Overlay</button>
         </div>
         
+        <div>
+          <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
+            <input type="checkbox" id="chk-background" checked style="margin-right: 10px;">
+            Enable Background Service (Global Mode)
+          </label>
+        </div>
+        
         <hr/>
         
         <div>
           <button class="button" id="btn-logs">Get Call Logs</button>
           <button class="button" id="btn-contacts">Get Contacts</button>
+          <button class="button" id="btn-sync">Sync Background Results</button>
         </div>
 
         <div id="output">Output will appear here...</div>
@@ -109,6 +117,64 @@ window.customElements.define(
           output.textContent = "Loading contacts...";
           const res = await CallManager.getContacts({});
           logToView(res);
+        } catch (e) {
+          logToView({ error: e.message });
+        }
+      });
+
+      self.shadowRoot.querySelector('#btn-sync').addEventListener('click', async () => {
+        try {
+          output.textContent = "Checking for background results...";
+          const res = await CallManager.getPendingSubmissions();
+          logToView(res);
+          if (res.submissions && res.submissions.length > 0) {
+              // Usually you'd send these to your server here, then clear.
+              // For demo, we just clear immediately.
+              await CallManager.clearPendingSubmissions();
+              output.textContent += "\n\n[INFO] Cleared native storage.";
+          }
+        } catch (e) {
+          logToView({ error: e.message });
+        }
+      });
+
+      const backgroundChk = self.shadowRoot.querySelector('#chk-background');
+      
+      // Load initial state
+      CallManager.isBackgroundServiceEnabled().then(res => {
+          backgroundChk.checked = res.enabled;
+      }).catch(e => console.error("Failed to load background state", e));
+
+      backgroundChk.addEventListener('change', async (e) => {
+          try {
+              const enabled = e.target.checked;
+              await CallManager.setBackgroundServiceEnabled({ enabled });
+              logToView({ background_service_enabled: enabled });
+          } catch (e) {
+              logToView({ error: e.message });
+              // Revert on failure
+              backgroundChk.checked = !backgroundChk.checked;
+          }
+      });
+
+      self.shadowRoot.querySelector('#btn-show-overlay').addEventListener('click', async () => {
+        try {
+          await CallManager.showOverlay({
+              number: "+91 9876543210",
+              name: "John Doe (Lead)",
+              duration: 125, // 2m 5s
+              mode: 'AFTER_CALL'
+          });
+          logToView({ action: "showOverlay", message: "Overlay triggered manually" });
+        } catch (e) {
+          logToView({ error: e.message });
+        }
+      });
+
+      self.shadowRoot.querySelector('#btn-hide-overlay').addEventListener('click', async () => {
+        try {
+          await CallManager.hideOverlay();
+          logToView({ action: "hideOverlay", message: "Overlay dismissed manually" });
         } catch (e) {
           logToView({ error: e.message });
         }

@@ -69,5 +69,35 @@ export class CallManagerWeb extends WebPlugin {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
         });
     }
+    getPendingSubmissions() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    clearPendingSubmissions() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    setBackgroundServiceEnabled(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    isBackgroundServiceEnabled() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    showOverlay(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    hideOverlay() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
 }
 //# sourceMappingURL=WebPlugin.js.map

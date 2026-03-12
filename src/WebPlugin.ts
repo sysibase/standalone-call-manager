@@ -49,4 +49,28 @@ export class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
   async stopRecording(): Promise<{ filePath: string }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
+
+  async getPendingSubmissions(): Promise<{ submissions: any[] }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async clearPendingSubmissions(): Promise<void> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async setBackgroundServiceEnabled(_options: { enabled: boolean }): Promise<void> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async isBackgroundServiceEnabled(): Promise<{ enabled: boolean }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async showOverlay(_options: { number: string; name?: string; duration?: number; mode?: 'DURING_CALL' | 'AFTER_CALL' }): Promise<void> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async hideOverlay(): Promise<void> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
 }

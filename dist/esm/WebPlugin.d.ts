@@ -27,4 +27,21 @@ export declare class CallManagerWeb extends WebPlugin implements CallManagerPlug
     stopRecording(): Promise<{
         filePath: string;
     }>;
+    getPendingSubmissions(): Promise<{
+        submissions: any[];
+    }>;
+    clearPendingSubmissions(): Promise<void>;
+    setBackgroundServiceEnabled(_options: {
+        enabled: boolean;
+    }): Promise<void>;
+    isBackgroundServiceEnabled(): Promise<{
+        enabled: boolean;
+    }>;
+    showOverlay(_options: {
+        number: string;
+        name?: string;
+        duration?: number;
+        mode?: 'DURING_CALL' | 'AFTER_CALL';
+    }): Promise<void>;
+    hideOverlay(): Promise<void>;
 }

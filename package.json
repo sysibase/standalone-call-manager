@@ -1,6 +1,6 @@
 {
   "name": "capacitor-call-manager",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Standalone Capacitor plugin for Call Logs, SMS, Contacts and CRM Overlay",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -15,7 +15,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/capacitor-call-manager.git"
+    "url": "https://github.com/ibase/capacitor-call-manager.git"
   },
   "keywords": [
     "capacitor",
@@ -25,12 +25,14 @@
     "call-manager",
     "call-logs",
     "contacts",
-    "overlay"
+    "overlay",
+    "crm",
+    "lead-management"
   ],
   "bugs": {
-    "url": "https://github.com/your-username/capacitor-call-manager/issues"
+    "url": "https://github.com/ibase/capacitor-call-manager/issues"
   },
-  "homepage": "https://github.com/your-username/capacitor-call-manager#readme",
+  "homepage": "https://github.com/ibase/capacitor-call-manager#readme",
   "peerDependencies": {
     "@capacitor/core": "^6.0.0 || ^7.0.0"
   },

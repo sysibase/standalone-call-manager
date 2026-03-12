@@ -22,10 +22,14 @@
     <!-- Audio Recording -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Boot persistence -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application>
-        <receiver android:name=".CallStateReceiver" android:exported="false">
+        <receiver android:name=".CallStateReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 

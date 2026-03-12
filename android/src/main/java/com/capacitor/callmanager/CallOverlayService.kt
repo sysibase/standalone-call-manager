@@ -128,14 +128,21 @@ class CallOverlayService : Service() {
         selectStatus(btnFollowUp, "FOLLOW_UP")
 
         btnSave?.setOnClickListener {
-            CallManagerPlugin.instance?.emitOverlaySubmitted(JSObject().apply { 
+            val submitData = JSObject().apply { 
                 put("number", number)
                 put("name", name)
                 put("status", selectedStatus)
                 put("notes", etNotes?.text?.toString() ?: "")
                 put("duration", duration)
                 put("timestamp", System.currentTimeMillis()) 
-            })
+            }
+            
+            val plugin = CallManagerPlugin.instance
+            if (plugin != null) {
+                plugin.emitOverlaySubmitted(submitData)
+            } else {
+                savePendingSubmission(this@CallOverlayService, submitData.toString())
+            }
             stopSelf()
         }
     }
@@ -206,7 +213,14 @@ class CallOverlayService : Service() {
         container.addView(Button(this).apply {
             text = "SAVE DETAILS"; setTextColor(-1); setTypeface(null, 1); background = android.graphics.drawable.GradientDrawable().apply { setColor(Color.parseColor("#4B4BCC")); cornerRadius = 24f }
             layoutParams = LinearLayout.LayoutParams(-1, 140); setOnClickListener {
-                CallManagerPlugin.instance?.emitOverlaySubmitted(JSObject().apply { put("number", number); put("name", name); put("status", selectedStatus); put("notes", notes.text.toString()); put("duration", duration); put("timestamp", System.currentTimeMillis()) })
+                val submitData = JSObject().apply { put("number", number); put("name", name); put("status", selectedStatus); put("notes", notes.text.toString()); put("duration", duration); put("timestamp", System.currentTimeMillis()) }
+                
+                val plugin = CallManagerPlugin.instance
+                if (plugin != null) {
+                    plugin.emitOverlaySubmitted(submitData)
+                } else {
+                    savePendingSubmission(this@CallOverlayService, submitData.toString())
+                }
                 stopSelf()
             }
         })
@@ -218,4 +232,11 @@ class CallOverlayService : Service() {
     private fun buildNotification(): Notification = NotificationCompat.Builder(this, CHANNEL_ID).setContentTitle("CRM Overlay Active").setSmallIcon(android.R.drawable.ic_menu_call).setOngoing(true).build()
     override fun onBind(intent: Intent?) = null
     override fun onDestroy() { super.onDestroy(); removeOverlay() }
+
+    private fun savePendingSubmission(context: Context, dataJson: String) {
+        val prefs = context.getSharedPreferences("CallManagerPending", Context.MODE_PRIVATE)
+        val existing = prefs.getStringSet("pending_submissions", mutableSetOf()) ?: mutableSetOf()
+        val newSet = mutableSetOf<String>().apply { addAll(existing); add(dataJson) }
+        prefs.edit().putStringSet("pending_submissions", newSet).apply()
+    }
 }
