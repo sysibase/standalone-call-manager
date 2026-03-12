@@ -142,6 +142,10 @@ class CallFilterDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_
         return queryItems("$COL_ENTITY_TYPE = ?", arrayOf(entityType))
     }
 
+    fun getByEntityId(entityId: String): List<TrackedItem> {
+        return queryItems("$COL_ENTITY_ID = ?", arrayOf(entityId))
+    }
+
     private fun queryItems(selection: String?, selectionArgs: Array<String>?): List<TrackedItem> {
         val list = mutableListOf<TrackedItem>()
         val cursor = readableDatabase.query(TABLE_TRACKED, null, selection, selectionArgs, null, null, null)

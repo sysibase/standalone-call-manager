@@ -129,10 +129,12 @@ Check out the [**Native XML Guide**](./brain/CUSTOM_UI.md).
 | `getCallLogs(options)` | Retrieve device call history. | Android |
 | `getContacts(search)` | Search and fetch contacts. | Android |
 | `addTrackedNumbers(items)`| Add numbers with metadata (Entity/ID) to whitelist. | Android |
-| `getTrackedNumbersByEntity()`| Fetch tracked numbers for specific category. | Android |
+| `getTrackedNumbersByEntity()`| Fetch tracked items by category/entity type. | Android |
+| `getTrackedNumbersByEntityId()`| Fetch tracked items by specific unique entity ID. | Android |
 | `showOverlay(data)` | Manually trigger the CRM popup. | Android |
 | `getPendingSubmissions()` | Retrieve submissions from offline mode. | Android |
 | `removeTrackedNumbersByEntity()`| Surgical cleanup of local database. | Android |
+| `removeTrackedNumbersByEntityId()`| Remove specific entity data by ID. | Android |
 
 ---
 

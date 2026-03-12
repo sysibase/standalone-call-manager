@@ -1,5 +1,5 @@
 import { WebPlugin } from '@capacitor/core';
-import type { CallManagerPlugin, PermissionStatus, CallLog, GetCallLogsOptions, Contact } from './definitions';
+import type { CallManagerPlugin, PermissionStatus, CallLog, GetCallLogsOptions, Contact, TrackedItem, CallOverlaySubmittedPayload, OverlayConfig } from './definitions';
 /**
  * CallManagerWeb — Web Compatibility Layer
  * =============================================================================
@@ -13,40 +13,57 @@ export declare class CallManagerWeb extends WebPlugin implements CallManagerPlug
     requestPermissions(): Promise<PermissionStatus>;
     requestOverlayPermission(): Promise<PermissionStatus>;
     getCallLogs(_options: GetCallLogsOptions): Promise<{
+        success: boolean;
         logs: CallLog[];
         total: number;
     }>;
     initCalling(_options: {
         number: string;
-    }): Promise<void>;
-    startCallListener(): Promise<void>;
-    stopCallListener(): Promise<void>;
+    }): Promise<{
+        success: boolean;
+    }>;
+    startCallListener(): Promise<{
+        success: boolean;
+    }>;
+    stopCallListener(): Promise<{
+        success: boolean;
+    }>;
     getContacts(_options: {
         search?: string;
         limit?: number;
         offset?: number;
     }): Promise<{
+        success: boolean;
         contacts: Contact[];
         total: number;
     }>;
     getPendingSubmissions(): Promise<{
-        submissions: any[];
+        success: boolean;
+        submissions: CallOverlaySubmittedPayload[];
     }>;
-    clearPendingSubmissions(): Promise<void>;
+    clearPendingSubmissions(): Promise<{
+        success: boolean;
+    }>;
     setBackgroundServiceEnabled(_options: {
         enabled: boolean;
-    }): Promise<void>;
+    }): Promise<{
+        success: boolean;
+    }>;
     isBackgroundServiceEnabled(): Promise<{
+        success: boolean;
         enabled: boolean;
     }>;
     setTrackingMode(_options: {
         mode: 'ALL' | 'SELECTED';
-    }): Promise<void>;
+    }): Promise<{
+        success: boolean;
+    }>;
     getTrackingMode(): Promise<{
+        success: boolean;
         mode: 'ALL' | 'SELECTED';
     }>;
     addTrackedNumbers(_options: {
-        items: any[];
+        items: TrackedItem[];
     }): Promise<{
         success: boolean;
         count: number;
@@ -73,20 +90,36 @@ export declare class CallManagerWeb extends WebPlugin implements CallManagerPlug
         count: number;
     }>;
     getAllTrackedNumbers(): Promise<{
-        items: any[];
+        success: boolean;
+        items: TrackedItem[];
     }>;
     getTrackedNumbersByEntity(_options: {
         entityType: string;
     }): Promise<{
-        items: any[];
+        success: boolean;
+        items: TrackedItem[];
+    }>;
+    getTrackedNumbersByEntityId(_options: {
+        entityId: string;
+    }): Promise<{
+        success: boolean;
+        items: TrackedItem[];
     }>;
     showOverlay(_options: {
         number: string;
         name?: string;
         duration?: number;
         mode?: 'DURING_CALL' | 'AFTER_CALL';
-    }): Promise<void>;
-    hideOverlay(): Promise<void>;
-    setOverlayConfig(_options: any): Promise<void>;
-    submitOverlayResult(_data: any): Promise<void>;
+    }): Promise<{
+        success: boolean;
+    }>;
+    hideOverlay(): Promise<{
+        success: boolean;
+    }>;
+    setOverlayConfig(_options: OverlayConfig): Promise<{
+        success: boolean;
+    }>;
+    submitOverlayResult(_data: CallOverlaySubmittedPayload): Promise<{
+        success: boolean;
+    }>;
 }

@@ -107,7 +107,7 @@ class CallOverlayService : Service() {
             val resId = resources.getIdentifier(if (currentMode == MODE_DURING_CALL) "overlay_during_call" else "overlay_after_call", "layout", packageName)
             
             if (resId == 0) {
-                overlayView = if (currentMode == MODE_DURING_CALL) createDuringCallViewFallback(number, name) else createAfterCallViewFallback(number, name, duration)
+                overlayView = if (currentMode == MODE_DURING_CALL) createDuringCallViewFallback(number, name) else createAfterCallViewFallback(number, name, duration, entityType, entityId)
             } else {
                 overlayView = inflater.inflate(resId, null)
                 if (currentMode == MODE_DURING_CALL) setupDuringCallView(overlayView!!, number, name)
@@ -288,7 +288,7 @@ class CallOverlayService : Service() {
         }
     }
 
-    private fun createAfterCallViewFallback(number: String, name: String, duration: Int): View {
+    private fun createAfterCallViewFallback(number: String, name: String, duration: Int, entityType: String = "", entityId: String = ""): View {
         val container = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(48, 40, 48, 32); background = android.graphics.drawable.GradientDrawable().apply { setColor(Color.parseColor("#1E1E3F")); cornerRadius = 48f } }
         val top = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
@@ -296,7 +296,8 @@ class CallOverlayService : Service() {
                 orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
                 addView(TextView(this@CallOverlayService).apply { text = "Call Session Result"; textSize = 12f; setTextColor(Color.parseColor("#7B7BCC")) })
                 addView(TextView(this@CallOverlayService).apply { text = if (name.isNotBlank()) name else "Contact"; textSize = 20f; setTextColor(-1); setTypeface(null, 1) })
-                addView(TextView(this@CallOverlayService).apply { text = "$number • ${duration/60}m ${duration%60}s"; textSize = 13f; setTextColor(Color.parseColor("#A0A0C0")) })
+                val entityTag = if (entityType.isNotBlank() || entityId.isNotBlank()) " [$entityType: $entityId]" else ""
+                addView(TextView(this@CallOverlayService).apply { text = "$number • ${duration/60}m ${duration%60}s$entityTag"; textSize = 13f; setTextColor(Color.parseColor("#A0A0C0")) })
             })
             addView(TextView(this@CallOverlayService).apply { text = "✕"; textSize = 20f; setTextColor(Color.parseColor("#A0A0C0")); setPadding(20,20,20,20); setOnClickListener { stopSelf() } })
         }

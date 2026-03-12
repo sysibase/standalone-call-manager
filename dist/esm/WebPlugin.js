@@ -122,6 +122,11 @@ export class CallManagerWeb extends WebPlugin {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
         });
     }
+    getTrackedNumbersByEntityId(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
     showOverlay(_options) {
         return __awaiter(this, void 0, void 0, function* () {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);

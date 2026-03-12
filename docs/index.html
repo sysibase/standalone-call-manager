@@ -307,7 +307,7 @@
     <header>
         <div class="container" style="justify-content: center;">
             <div style="text-align: center;">
-                <div class="badge" style="margin-bottom: 2rem; padding: 0.5rem 1.5rem; font-size: 0.9rem;">Version 1.0.5 Release</div>
+                <div class="badge" style="margin-bottom: 2rem; padding: 0.5rem 1.5rem; font-size: 0.9rem;">Version 1.0.6 Release</div>
                 <h1 class="hero-title">Capacitor Call Manager</h1>
                 <p class="hero-subtitle">Production-grade telephony & CRM infrastructure for modern Capacitor apps. Handle calls, contacts, and custom overlays with ease.</p>
                 <div style="display: flex; gap: 1rem; justify-content: center;">
@@ -421,27 +421,32 @@ async function setup() {
                             <tr>
                                 <td><code>addTrackedNumbers</code></td>
                                 <td><code>Promise<{success, count}></code></td>
-                                <td>Syncs numbers with metadata to the native DB.</td>
+                                <td>Syncs numbers with metadata (Entity/ID) to the native DB.</td>
+                            </tr>
+                            <tr>
+                                <td><code>getTrackedNumbersByEntityId</code></td>
+                                <td><code>Promise<{success, items}></code></td>
+                                <td>Fetch tracked items by specific unique entity ID.</td>
                             </tr>
                             <tr>
                                 <td><code>getCallLogs</code></td>
-                                <td><code>Promise<{logs: CallLog[]}></code></td>
-                                <td>Retrieves system call history.</td>
+                                <td><code>Promise<{success, logs}></code></td>
+                                <td>Retrieves system call history with advanced filters.</td>
                             </tr>
                             <tr>
-                                <td><code>removeTrackedNumbersByEntity</code></td>
+                                <td><code>removeTrackedNumbersByEntityId</code></td>
                                 <td><code>Promise<{success, count}></code></td>
-                                <td>Surgical cleanup by category.</td>
+                                <td>Surgical cleanup of local database by Entity ID.</td>
                             </tr>
                             <tr>
                                 <td><code>getPendingSubmissions</code></td>
-                                <td><code>Promise<{submissions}></code></td>
-                                <td>Fetches offline user interactions.</td>
+                                <td><code>Promise<{success, submissions}></code></td>
+                                <td>Fetches offline user interactions from offline mode.</td>
                             </tr>
                             <tr>
                                 <td><code>setBackgroundServiceEnabled</code></td>
-                                <td><code>Promise<void></code></td>
-                                <td>Toggles Global vs App-Only mode.</td>
+                                <td><code>Promise<{success}></code></td>
+                                <td>Toggles Global vs App-Only mode for background task.</td>
                             </tr>
                         </tbody>
                     </table>

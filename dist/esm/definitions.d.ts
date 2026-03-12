@@ -115,6 +115,7 @@ export interface CallManagerPlugin {
      * Web: Throws Unimplemented.
      */
     getCallLogs(options: GetCallLogsOptions): Promise<{
+        success: boolean;
         logs: CallLog[];
         total: number;
     }>;
@@ -123,15 +124,21 @@ export interface CallManagerPlugin {
      */
     initCalling(options: {
         number: string;
-    }): Promise<void>;
+    }): Promise<{
+        success: boolean;
+    }>;
     /**
      * Start listening to native call state changes to trigger overlays (Android only).
      */
-    startCallListener(): Promise<void>;
+    startCallListener(): Promise<{
+        success: boolean;
+    }>;
     /**
      * Stop listening to native call state changes.
      */
-    stopCallListener(): Promise<void>;
+    stopCallListener(): Promise<{
+        success: boolean;
+    }>;
     /**
      * Retrieve a list of generic device contacts.
      * Android: Requires `contacts` permission.
@@ -144,6 +151,7 @@ export interface CallManagerPlugin {
         limit?: number;
         offset?: number;
     }): Promise<{
+        success: boolean;
         contacts: Contact[];
         total: number;
     }>;
@@ -151,23 +159,29 @@ export interface CallManagerPlugin {
      * Retrieve any overlay results that were saved while the app was closed (Android only).
      */
     getPendingSubmissions(): Promise<{
+        success: boolean;
         submissions: CallOverlaySubmittedPayload[];
     }>;
     /**
      * Clear the local storage of pending submissions (Android only).
      */
-    clearPendingSubmissions(): Promise<void>;
+    clearPendingSubmissions(): Promise<{
+        success: boolean;
+    }>;
     /**
      * Enable or disable the background call receiver (Android only).
      * If disabled, overlays will ONLY appear if the app is currently running.
      */
     setBackgroundServiceEnabled(options: {
         enabled: boolean;
-    }): Promise<void>;
+    }): Promise<{
+        success: boolean;
+    }>;
     /**
      * Check if the background service is currently enabled.
      */
     isBackgroundServiceEnabled(): Promise<{
+        success: boolean;
         enabled: boolean;
     }>;
     /**
@@ -177,11 +191,14 @@ export interface CallManagerPlugin {
      */
     setTrackingMode(options: {
         mode: 'ALL' | 'SELECTED';
-    }): Promise<void>;
+    }): Promise<{
+        success: boolean;
+    }>;
     /**
      * Get the current tracking mode.
      */
     getTrackingMode(): Promise<{
+        success: boolean;
         mode: 'ALL' | 'SELECTED';
     }>;
     /**
@@ -230,6 +247,7 @@ export interface CallManagerPlugin {
      * Get all currently tracked numbers.
      */
     getAllTrackedNumbers(): Promise<{
+        success: boolean;
         items: TrackedItem[];
     }>;
     /**
@@ -238,6 +256,16 @@ export interface CallManagerPlugin {
     getTrackedNumbersByEntity(options: {
         entityType: string;
     }): Promise<{
+        success: boolean;
+        items: TrackedItem[];
+    }>;
+    /**
+     * Get all tracked numbers belonging to a specific entity ID (Android only).
+     */
+    getTrackedNumbersByEntityId(options: {
+        entityId: string;
+    }): Promise<{
+        success: boolean;
         items: TrackedItem[];
     }>;
     /**
@@ -248,20 +276,28 @@ export interface CallManagerPlugin {
         name?: string;
         duration?: number;
         mode?: 'DURING_CALL' | 'AFTER_CALL';
-    }): Promise<void>;
+    }): Promise<{
+        success: boolean;
+    }>;
     /**
      * Manually dismiss any active overlay (Android only).
      */
-    hideOverlay(): Promise<void>;
+    hideOverlay(): Promise<{
+        success: boolean;
+    }>;
     /**
      * Configure a web-based overlay portal (Android only).
      * Providing a URL will disable the default native XML UI.
      */
-    setOverlayConfig(options: OverlayConfig): Promise<void>;
+    setOverlayConfig(options: OverlayConfig): Promise<{
+        success: boolean;
+    }>;
     /**
      * Submit data from a Web Overlay portal back to the main app (Android only).
      */
-    submitOverlayResult(data: CallOverlaySubmittedPayload): Promise<void>;
+    submitOverlayResult(data: CallOverlaySubmittedPayload): Promise<{
+        success: boolean;
+    }>;
     /** Listens for an incoming ringing call */
     addListener(eventName: 'callIncoming', listenerFunc: (data: {
         number: string;

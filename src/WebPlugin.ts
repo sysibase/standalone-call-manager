@@ -1,5 +1,14 @@
 import { WebPlugin, CapacitorException, ExceptionCode } from '@capacitor/core';
-import type { CallManagerPlugin, PermissionStatus, CallLog, GetCallLogsOptions, Contact } from './definitions';
+import type { 
+  CallManagerPlugin, 
+  PermissionStatus, 
+  CallLog, 
+  GetCallLogsOptions, 
+  Contact, 
+  TrackedItem, 
+  CallOverlaySubmittedPayload, 
+  OverlayConfig 
+} from './definitions';
 
 /**
  * CallManagerWeb — Web Compatibility Layer
@@ -22,51 +31,51 @@ export class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async getCallLogs(_options: GetCallLogsOptions): Promise<{ logs: CallLog[]; total: number }> {
+  async getCallLogs(_options: GetCallLogsOptions): Promise<{ success: boolean; logs: CallLog[]; total: number }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async initCalling(_options: { number: string }): Promise<void> {
+  async initCalling(_options: { number: string }): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async startCallListener(): Promise<void> {
+  async startCallListener(): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async stopCallListener(): Promise<void> {
+  async stopCallListener(): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async getContacts(_options: { search?: string; limit?: number; offset?: number }): Promise<{ contacts: Contact[]; total: number }> {
+  async getContacts(_options: { search?: string; limit?: number; offset?: number }): Promise<{ success: boolean; contacts: Contact[]; total: number }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async getPendingSubmissions(): Promise<{ submissions: any[] }> {
+  async getPendingSubmissions(): Promise<{ success: boolean; submissions: CallOverlaySubmittedPayload[] }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async clearPendingSubmissions(): Promise<void> {
+  async clearPendingSubmissions(): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async setBackgroundServiceEnabled(_options: { enabled: boolean }): Promise<void> {
+  async setBackgroundServiceEnabled(_options: { enabled: boolean }): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async isBackgroundServiceEnabled(): Promise<{ enabled: boolean }> {
+  async isBackgroundServiceEnabled(): Promise<{ success: boolean; enabled: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async setTrackingMode(_options: { mode: 'ALL' | 'SELECTED' }): Promise<void> {
+  async setTrackingMode(_options: { mode: 'ALL' | 'SELECTED' }): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async getTrackingMode(): Promise<{ mode: 'ALL' | 'SELECTED' }> {
+  async getTrackingMode(): Promise<{ success: boolean; mode: 'ALL' | 'SELECTED' }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async addTrackedNumbers(_options: { items: any[] }): Promise<{ success: boolean; count: number }> {
+  async addTrackedNumbers(_options: { items: TrackedItem[] }): Promise<{ success: boolean; count: number }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
@@ -86,27 +95,31 @@ export class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async getAllTrackedNumbers(): Promise<{ items: any[] }> {
+  async getAllTrackedNumbers(): Promise<{ success: boolean; items: TrackedItem[] }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async getTrackedNumbersByEntity(_options: { entityType: string }): Promise<{ items: any[] }> {
+  async getTrackedNumbersByEntity(_options: { entityType: string }): Promise<{ success: boolean; items: TrackedItem[] }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async showOverlay(_options: { number: string; name?: string; duration?: number; mode?: 'DURING_CALL' | 'AFTER_CALL' }): Promise<void> {
+  async getTrackedNumbersByEntityId(_options: { entityId: string }): Promise<{ success: boolean; items: TrackedItem[] }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async hideOverlay(): Promise<void> {
+  async showOverlay(_options: { number: string; name?: string; duration?: number; mode?: 'DURING_CALL' | 'AFTER_CALL' }): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async setOverlayConfig(_options: any): Promise<void> {
+  async hideOverlay(): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async submitOverlayResult(_data: any): Promise<void> {
+  async setOverlayConfig(_options: OverlayConfig): Promise<{ success: boolean }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async submitOverlayResult(_data: CallOverlaySubmittedPayload): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 }

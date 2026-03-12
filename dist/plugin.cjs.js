@@ -125,6 +125,11 @@ class CallManagerWeb extends core.WebPlugin {
             throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
         });
     }
+    getTrackedNumbersByEntityId(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
     showOverlay(_options) {
         return __awaiter(this, void 0, void 0, function* () {
             throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);

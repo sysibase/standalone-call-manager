@@ -102,7 +102,8 @@ class CallManagerPlugin : Plugin() {
         }
         try {
             val intent = Intent(Intent.ACTION_CALL, Uri.parse("tel:$number")).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-            context.startActivity(intent); call.resolve()
+            context.startActivity(intent)
+            call.resolve(JSObject().apply { put("success", true) })
         } catch (e: Exception) { call.reject("FEATURE_NOT_SUPPORTED", e.message, e) }
     }
 
@@ -120,13 +121,13 @@ class CallManagerPlugin : Plugin() {
                 context.registerReceiver(callStateReceiver, filter)
             }
         }
-        call.resolve()
+        call.resolve(JSObject().apply { put("success", true) })
     }
 
     @PluginMethod
     fun stopCallListener(call: PluginCall) {
         callStateReceiver?.let { context.unregisterReceiver(it); callStateReceiver = null }
-        call.resolve()
+        call.resolve(JSObject().apply { put("success", true) })
     }
 
     @PluginMethod
@@ -300,13 +301,13 @@ class CallManagerPlugin : Plugin() {
         val mode = call.getString("mode", "AFTER_CALL") ?: "AFTER_CALL"
         
         launchCallOverlay(number, name, duration, mode)
-        call.resolve()
+        call.resolve(JSObject().apply { put("success", true) })
     }
 
     @PluginMethod
     fun hideOverlay(call: PluginCall) {
         CallOverlayService.stop(context)
-        call.resolve()
+        call.resolve(JSObject().apply { put("success", true) })
     }
 
     @PluginMethod
@@ -315,14 +316,20 @@ class CallManagerPlugin : Plugin() {
         val height = call.getInt("height", -2) // WRAP_CONTENT
         val width = call.getInt("width", -1)   // MATCH_PARENT
         
-        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
-        prefs.edit().apply {
-            putString("overlay_url", url)
-            putInt("overlay_height", height ?: -2)
-            putInt("overlay_width", width ?: -1)
-            apply()
+        execute {
+            try {
+                val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+                prefs.edit().apply {
+                    putString("overlay_url", url)
+                    putInt("overlay_height", height ?: -2)
+                    putInt("overlay_width", width ?: -1)
+                    apply()
+                }
+                call.resolve(JSObject().apply { put("success", true) })
+            } catch (e: Exception) {
+                call.reject("Failed to set overlay config", e)
+            }
         }
-        call.resolve()
     }
 
     @PluginMethod
@@ -330,64 +337,97 @@ class CallManagerPlugin : Plugin() {
         val data = call.data
         emitOverlaySubmitted(data)
         CallOverlayService.stop(context)
-        call.resolve()
+        call.resolve(JSObject().apply { put("success", true) })
     }
 
     @PluginMethod
     fun getPendingSubmissions(call: PluginCall) {
-        val prefs = context.getSharedPreferences("CallManagerPending", android.content.Context.MODE_PRIVATE)
-        val pending = prefs.getStringSet("pending_submissions", mutableSetOf()) ?: mutableSetOf()
-        
-        val result = JSObject()
-        val array = com.getcapacitor.JSArray()
-        pending.forEach { 
+        execute {
             try {
-                array.put(JSObject(it))
+                val prefs = context.getSharedPreferences("CallManagerPending", android.content.Context.MODE_PRIVATE)
+                val pending = prefs.getStringSet("pending_submissions", mutableSetOf()) ?: mutableSetOf()
+                
+                val result = JSObject()
+                val array = com.getcapacitor.JSArray()
+                pending.forEach { 
+                    try {
+                        array.put(JSObject(it))
+                    } catch (e: Exception) {
+                        Log.e("CallManager", "Failed to parse pending submission: $it", e)
+                    }
+                }
+                result.put("success", true)
+                result.put("submissions", array)
+                call.resolve(result)
             } catch (e: Exception) {
-                Log.e("CallManager", "Failed to parse pending submission: $it", e)
+                call.reject("Failed to get pending submissions", e)
             }
         }
-        result.put("submissions", array)
-        call.resolve(result)
     }
 
     @PluginMethod
     fun clearPendingSubmissions(call: PluginCall) {
-        val prefs = context.getSharedPreferences("CallManagerPending", android.content.Context.MODE_PRIVATE)
-        prefs.edit().remove("pending_submissions").apply()
-        call.resolve()
+        execute {
+            try {
+                val prefs = context.getSharedPreferences("CallManagerPending", android.content.Context.MODE_PRIVATE)
+                prefs.edit().remove("pending_submissions").apply()
+                call.resolve(JSObject().apply { put("success", true) })
+            } catch (e: Exception) {
+                call.reject("Failed to clear pending submissions", e)
+            }
+        }
     }
 
     @PluginMethod
     fun setBackgroundServiceEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", true) ?: true
-        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("background_enabled", enabled).apply()
-        call.resolve()
+        execute {
+            try {
+                val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+                prefs.edit().putBoolean("background_enabled", enabled).apply()
+                call.resolve(JSObject().apply { put("success", true) })
+            } catch (e: Exception) {
+                call.reject("Failed to set background service status", e)
+            }
+        }
     }
 
     @PluginMethod
     fun isBackgroundServiceEnabled(call: PluginCall) {
-        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
-        val enabled = prefs.getBoolean("background_enabled", true)
-        val res = JSObject()
-        res.put("enabled", enabled)
-        call.resolve(res)
+        execute {
+            val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+            val enabled = prefs.getBoolean("background_enabled", true)
+            val res = JSObject()
+            res.put("success", true)
+            res.put("enabled", enabled)
+            call.resolve(res)
+        }
     }
 
     @PluginMethod
     fun setTrackingMode(call: PluginCall) {
         val mode = call.getString("mode", "ALL") ?: "ALL"
-        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
-        prefs.edit().putString("tracking_mode", mode).apply()
-        call.resolve()
+        execute {
+            try {
+                val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+                prefs.edit().putString("tracking_mode", mode).apply()
+                call.resolve(JSObject().apply { put("success", true) })
+            } catch (e: Exception) {
+                call.reject("Failed to set tracking mode", e)
+            }
+        }
     }
 
     @PluginMethod
     fun getTrackingMode(call: PluginCall) {
-        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
-        val mode = prefs.getString("tracking_mode", "ALL") ?: "ALL"
-        call.resolve(JSObject().apply { put("mode", mode) })
+        execute {
+            val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+            val mode = prefs.getString("tracking_mode", "ALL") ?: "ALL"
+            call.resolve(JSObject().apply { 
+                put("success", true)
+                put("mode", mode) 
+            })
+        }
     }
 
     @PluginMethod
@@ -499,7 +539,10 @@ class CallManagerPlugin : Plugin() {
                     }
                     array.put(obj)
                 }
-                call.resolve(JSObject().apply { put("items", array) })
+                call.resolve(JSObject().apply { 
+                    put("success", true)
+                    put("items", array) 
+                })
             } catch (e: Exception) {
                 call.reject("Failed to fetch all tracked items", e)
             }
@@ -522,9 +565,38 @@ class CallManagerPlugin : Plugin() {
                     }
                     array.put(obj)
                 }
-                call.resolve(JSObject().apply { put("items", array) })
+                call.resolve(JSObject().apply { 
+                    put("success", true)
+                    put("items", array) 
+                })
             } catch (e: Exception) {
                 call.reject("Failed to fetch items by entity", e)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun getTrackedNumbersByEntityId(call: PluginCall) {
+        val entityId = call.getString("entityId") ?: return call.reject("entityId is required")
+        execute {
+            try {
+                val items = CallFilterDatabase.getInstance(context).getByEntityId(entityId)
+                val array = com.getcapacitor.JSArray()
+                items.forEach { item ->
+                    val obj = JSObject().apply {
+                        put("number", item.number)
+                        put("name", item.name)
+                        put("entityType", item.entityType)
+                        put("entityId", item.entityId)
+                    }
+                    array.put(obj)
+                }
+                call.resolve(JSObject().apply { 
+                    put("success", true)
+                    put("items", array) 
+                })
+            } catch (e: Exception) {
+                call.reject("Failed to fetch items by entity ID", e)
             }
         }
     }
