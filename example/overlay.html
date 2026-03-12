@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overlay Portal</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 20px;
+            background: #111827; color: white;
+            border-radius: 24px; border: 1px solid #374151;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .title { color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .name { font-size: 20px; font-weight: bold; margin: 4px 0; }
+        .details { color: #6b7280; font-size: 14px; }
+        .close { cursor: pointer; color: #6b7280; font-size: 20px; padding: 5px; }
+        
+        .status-row { display: flex; gap: 8px; margin: 20px 0; }
+        .status-btn { 
+            flex: 1; padding: 10px 5px; border-radius: 12px; border: none;
+            background: #1f2937; color: #9ca3af; font-size: 10px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .status-btn.active { background: #3b82f6; color: white; }
+        
+        textarea {
+            width: 100%; box-sizing: border-box; background: #1f2937; border: 1px solid #374151;
+            border-radius: 12px; color: white; padding: 12px; margin-bottom: 20px;
+            font-size: 14px; outline: none; resize: none;
+        }
+        
+        #save-btn {
+            width: 100%; padding: 14px; border-radius: 16px; border: none;
+            background: #4f46e5; color: white; font-weight: bold; font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <div class="title">Call Result (React Overlay)</div>
+            <div id="contact-name" class="name">Loading...</div>
+            <div id="call-details" class="details">Loading...</div>
+        </div>
+        <div class="close" onclick="closeOverlay()">✕</div>
+    </div>
+
+    <div class="status-row">
+        <button class="status-btn" onclick="setStatus('INTERESTED', this)">INTERESTED</button>
+        <button class="status-btn active" onclick="setStatus('FOLLOW_UP', this)">FOLLOW UP</button>
+        <button class="status-btn" onclick="setStatus('NOT_INTERESTED', this)">NOT INT.</button>
+    </div>
+
+    <textarea id="notes" rows="3" placeholder="Add follow-up notes..."></textarea>
+
+    <button id="save-btn" onclick="submitResult()">SAVE LEAD</button>
+
+    <script>
+        // Use URL params to get data
+        const params = new URLSearchParams(window.location.search);
+        const number = params.get('number') || 'Unknown';
+        const name = params.get('name') || 'Contact';
+        const duration = parseInt(params.get('duration') || '0');
+
+        document.getElementById('contact-name').innerText = name;
+        document.getElementById('call-details').innerText = `${number} • ${Math.floor(duration/60)}m ${duration%60}s`;
+
+        let currentStatus = 'FOLLOW_UP';
+        function setStatus(status, btn) {
+            currentStatus = status;
+            document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function closeOverlay() {
+            if (window.CallManagerBridge) {
+                window.CallManagerBridge.close();
+            }
+        }
+
+        function submitResult() {
+            const notes = document.getElementById('notes').value;
+            const result = {
+                number: number,
+                name: name,
+                status: currentStatus,
+                notes: notes,
+                duration: duration,
+                timestamp: Date.now()
+            };
+
+            if (window.CallManagerBridge) {
+                // Call the native bridge
+                window.CallManagerBridge.submitResult(JSON.stringify(result));
+            } else {
+                console.log("Native bridge not found. Result:", result);
+                alert("Simulated Save: " + currentStatus);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -16,7 +16,6 @@ import com.getcapacitor.annotation.Permission
 import com.getcapacitor.annotation.PermissionCallback
 import com.getcapacitor.annotation.ActivityCallback
 import androidx.activity.result.ActivityResult
-import android.media.MediaRecorder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,7 +30,7 @@ import java.io.File
         Permission(strings = [Manifest.permission.READ_PHONE_STATE], alias = "phoneState"),
         Permission(strings = [Manifest.permission.CALL_PHONE], alias = "callPhone"),
         Permission(strings = [Manifest.permission.READ_CONTACTS], alias = "contacts"),
-        Permission(strings = [Manifest.permission.RECORD_AUDIO], alias = "microphone"),
+        Permission(strings = ["android.permission.POST_NOTIFICATIONS"], alias = "notifications"),
     ]
 )
 class CallManagerPlugin : Plugin() {
@@ -42,8 +41,6 @@ class CallManagerPlugin : Plugin() {
 
     private var callStateReceiver: CallStateReceiver? = null
     private val pluginScope = CoroutineScope(Dispatchers.IO)
-    private var recorder: MediaRecorder? = null
-    private var recordingFile: File? = null
 
     override fun load() {
         instance = this
@@ -53,7 +50,6 @@ class CallManagerPlugin : Plugin() {
         super.handleOnDestroy()
         callStateReceiver?.let { context.unregisterReceiver(it); callStateReceiver = null }
         pluginScope.cancel()
-        recorder?.release()
     }
 
     @PluginMethod
@@ -128,7 +124,6 @@ class CallManagerPlugin : Plugin() {
         result.put("phoneState", getPermissionState("phoneState").name.lowercase())
         result.put("callPhone", getPermissionState("callPhone").name.lowercase())
         result.put("contacts", getPermissionState("contacts").name.lowercase())
-        result.put("microphone", getPermissionState("microphone").name.lowercase())
         result.put("overlay", if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(context)) "granted" else "denied")
         call.resolve(result)
     }
@@ -167,30 +162,99 @@ class CallManagerPlugin : Plugin() {
     }
 
     fun emitCallIncoming(number: String, name: String?) {
-        val data = JSObject().apply { put("number", number); put("name", name ?: getContactNameByNumber(number) ?: ""); put("timestamp", System.currentTimeMillis()) }
+        val details = CallFilterDatabase.getInstance(context).getDetails(number)
+        val data = JSObject().apply { 
+            put("number", number)
+            put("name", name ?: details?.name ?: getContactNameByNumber(number) ?: "")
+            put("entityType", details?.entityType ?: "")
+            put("entityId", details?.entityId ?: "")
+            put("timestamp", System.currentTimeMillis()) 
+        }
         notifyListeners("callIncoming", data)
     }
 
     fun emitCallStarted(number: String, name: String?, startTime: Long) {
-        val contactName = name ?: getContactNameByNumber(number)
-        val data = JSObject().apply { put("number", number); put("name", contactName ?: ""); put("startTime", startTime) }
+        val details = CallFilterDatabase.getInstance(context).getDetails(number)
+        val contactName = name ?: details?.name ?: getContactNameByNumber(number)
+        val data = JSObject().apply { 
+            put("number", number)
+            put("name", contactName ?: "")
+            put("entityType", details?.entityType ?: "")
+            put("entityId", details?.entityId ?: "")
+            put("startTime", startTime) 
+        }
         notifyListeners("callStarted", data)
-        launchCallOverlay(number, contactName ?: "", 0, CallOverlayService.MODE_DURING_CALL)
+        
+        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+        val trackingMode = prefs.getString("tracking_mode", "ALL") ?: "ALL"
+        val shouldShow = trackingMode == "ALL" || details != null
+        
+        if (shouldShow) {
+            launchCallOverlay(number, contactName ?: "", 0, CallOverlayService.MODE_DURING_CALL, details)
+        } else {
+            Log.d("CallManager", "Skipping overlay for $number based on tracking mode: $trackingMode")
+        }
     }
 
     fun emitCallEnded(number: String, name: String?, startTime: Long, endTime: Long) {
-        val contactName = name ?: getContactNameByNumber(number)
+        val details = CallFilterDatabase.getInstance(context).getDetails(number)
+        val contactName = name ?: details?.name ?: getContactNameByNumber(number)
         val duration = ((endTime - startTime) / 1000).toInt()
-        val data = JSObject().apply { put("number", number); put("name", contactName ?: ""); put("startTime", startTime); put("endTime", endTime); put("duration", duration) }
+        val data = JSObject().apply { 
+            put("number", number)
+            put("name", contactName ?: "")
+            put("entityType", details?.entityType ?: "")
+            put("entityId", details?.entityId ?: "")
+            put("startTime", startTime)
+            put("endTime", endTime)
+            put("duration", duration) 
+        }
         notifyListeners("callEnded", data)
-        if (startTime > 0) launchCallOverlay(number, contactName ?: "", duration, CallOverlayService.MODE_AFTER_CALL) else CallOverlayService.stop(context)
+
+        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+        val trackingMode = prefs.getString("tracking_mode", "ALL") ?: "ALL"
+        val shouldShow = trackingMode == "ALL" || details != null
+
+        if (startTime > 0) {
+            if (shouldShow) {
+                launchCallOverlay(number, contactName ?: "", duration, CallOverlayService.MODE_AFTER_CALL, details)
+            } else {
+                CallOverlayService.stop(context)
+            }
+        } else {
+            CallOverlayService.stop(context)
+        }
     }
 
     fun emitOverlaySubmitted(data: JSObject) { notifyListeners("callOverlaySubmitted", data) }
 
-    private fun launchCallOverlay(number: String, name: String, duration: Int, mode: String) {
+    fun emitOverlayLifecycleEvent(event: String, number: String?) {
+        val data = JSObject()
+        if (number != null) {
+            data.put("number", number)
+            val details = CallFilterDatabase.getInstance(context).getDetails(number)
+            if (details != null) {
+                data.put("entityType", details.entityType)
+                data.put("entityId", details.entityId)
+            }
+        }
+        data.put("timestamp", System.currentTimeMillis())
+        notifyListeners(event, data)
+    }
+
+    private fun launchCallOverlay(number: String, name: String, duration: Int, mode: String, details: CallFilterDatabase.TrackedItem? = null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(context)) return
-        val intent = Intent(context, CallOverlayService::class.java).apply { putExtra("number", number); putExtra("name", name); putExtra("duration", duration); putExtra("mode", mode); addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+        val intent = Intent(context, CallOverlayService::class.java).apply { 
+            putExtra("number", number)
+            putExtra("name", name)
+            putExtra("duration", duration)
+            putExtra("mode", mode)
+            if (details != null) {
+                putExtra("entityType", details.entityType)
+                putExtra("entityId", details.entityId)
+            }
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) 
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent) else context.startService(intent)
     }
 
@@ -217,57 +281,6 @@ class CallManagerPlugin : Plugin() {
     }
 
     @PluginMethod
-    fun startRecording(call: PluginCall) {
-        if (getPermissionState("microphone") != com.getcapacitor.PermissionState.GRANTED) {
-            return call.reject("PERMISSION_DENIED", "Missing microphone permission")
-        }
-        if (recorder != null) return call.reject("UNAVAILABLE", "Already recording")
-        try {
-            val externalDir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_MUSIC)
-            recordingFile = File(externalDir ?: context.cacheDir, "rec_${System.currentTimeMillis()}.mp3")
-            recorder = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(context) else MediaRecorder()).apply { setAudioSource(MediaRecorder.AudioSource.MIC); setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); setAudioEncoder(MediaRecorder.AudioEncoder.AAC); setOutputFile(recordingFile?.absolutePath); prepare(); start() }
-            call.resolve()
-        } catch (e: Exception) { call.reject("UNAVAILABLE", e.message, e) }
-    }
-
-    @PluginMethod
-    fun pauseRecording(call: PluginCall) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            try {
-                recorder?.pause()
-                call.resolve()
-            } catch(e: Exception) {
-                call.reject("UNAVAILABLE", e.message, e)
-            }
-        } else {
-            call.reject("FEATURE_NOT_SUPPORTED", "Pause requires Android N+")
-        }
-    }
-
-    @PluginMethod
-    fun resumeRecording(call: PluginCall) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            try {
-                recorder?.resume()
-                call.resolve()
-            } catch(e: Exception) {
-                call.reject("UNAVAILABLE", e.message, e)
-            }
-        } else {
-            call.reject("FEATURE_NOT_SUPPORTED", "Resume requires Android N+")
-        }
-    }
-
-    @PluginMethod
-    fun stopRecording(call: PluginCall) {
-        if (recorder == null) return call.reject("UNAVAILABLE", "Not recording")
-        try {
-            recorder?.apply { stop(); release() }; recorder = null
-            val res = JSObject().apply { put("filePath", recordingFile?.absolutePath ?: "") }; call.resolve(res)
-        } catch (e: Exception) { call.reject("UNAVAILABLE", e.message, e) }
-    }
-
-    @PluginMethod
     fun showOverlay(call: PluginCall) {
         val number = call.getString("number", "") ?: ""
         val name = call.getString("name", "") ?: ""
@@ -280,6 +293,30 @@ class CallManagerPlugin : Plugin() {
 
     @PluginMethod
     fun hideOverlay(call: PluginCall) {
+        CallOverlayService.stop(context)
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun setOverlayConfig(call: PluginCall) {
+        val url = call.getString("url")
+        val height = call.getInt("height", -2) // WRAP_CONTENT
+        val width = call.getInt("width", -1)   // MATCH_PARENT
+        
+        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+        prefs.edit().apply {
+            putString("overlay_url", url)
+            putInt("overlay_height", height ?: -2)
+            putInt("overlay_width", width ?: -1)
+            apply()
+        }
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun submitOverlayResult(call: PluginCall) {
+        val data = call.data
+        emitOverlaySubmitted(data)
         CallOverlayService.stop(context)
         call.resolve()
     }
@@ -324,6 +361,158 @@ class CallManagerPlugin : Plugin() {
         val res = JSObject()
         res.put("enabled", enabled)
         call.resolve(res)
+    }
+
+    @PluginMethod
+    fun setTrackingMode(call: PluginCall) {
+        val mode = call.getString("mode", "ALL") ?: "ALL"
+        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+        prefs.edit().putString("tracking_mode", mode).apply()
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun getTrackingMode(call: PluginCall) {
+        val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+        val mode = prefs.getString("tracking_mode", "ALL") ?: "ALL"
+        call.resolve(JSObject().apply { put("mode", mode) })
+    }
+
+    @PluginMethod
+    fun addTrackedNumbers(call: PluginCall) {
+        val itemsArray = call.getArray("items") ?: com.getcapacitor.JSArray()
+        val items = mutableListOf<CallFilterDatabase.TrackedItem>()
+        for (i in 0 until itemsArray.length()) {
+            val obj = itemsArray.getJSONObject(i)
+            items.add(CallFilterDatabase.TrackedItem(
+                number = obj.getString("number") ?: "",
+                name = obj.optString("name"),
+                entityType = obj.optString("entityType"),
+                entityId = obj.optString("entityId")
+            ))
+        }
+        
+        // Execute in background to prevent UI lag on large batches
+        execute {
+            try {
+                CallFilterDatabase.getInstance(context).addTrackedItems(items)
+                val result = JSObject().apply {
+                    put("success", true)
+                    put("count", items.size)
+                }
+                call.resolve(result)
+            } catch (e: Exception) {
+                call.reject("Failed to add tracked items", e)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun removeTrackedNumbers(call: PluginCall) {
+        val numbers = call.getArray("numbers")?.toList<String>() ?: emptyList()
+        execute {
+            try {
+                val count = CallFilterDatabase.getInstance(context).removeNumbers(numbers)
+                val result = JSObject().apply {
+                    put("success", true)
+                    put("count", count)
+                }
+                call.resolve(result)
+            } catch (e: Exception) {
+                call.reject("Failed to remove numbers", e)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun removeAllTrackedNumbers(call: PluginCall) {
+        execute {
+            try {
+                CallFilterDatabase.getInstance(context).removeAll()
+                call.resolve(JSObject().apply { put("success", true) })
+            } catch (e: Exception) {
+                call.reject("Failed to clear tracked items", e)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun removeTrackedNumbersByEntity(call: PluginCall) {
+        val entityType = call.getString("entityType") ?: return call.reject("entityType is required")
+        execute {
+            try {
+                val count = CallFilterDatabase.getInstance(context).removeByEntity(entityType)
+                val result = JSObject().apply {
+                    put("success", true)
+                    put("count", count)
+                }
+                call.resolve(result)
+            } catch (e: Exception) {
+                call.reject("Failed to remove items by entity", e)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun removeTrackedNumbersByEntityId(call: PluginCall) {
+        val entityId = call.getString("entityId") ?: return call.reject("entityId is required")
+        execute {
+            try {
+                val count = CallFilterDatabase.getInstance(context).removeByEntityId(entityId)
+                val result = JSObject().apply {
+                    put("success", true)
+                    put("count", count)
+                }
+                call.resolve(result)
+            } catch (e: Exception) {
+                call.reject("Failed to remove items by entity ID", e)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun getAllTrackedNumbers(call: PluginCall) {
+        execute {
+            try {
+                val items = CallFilterDatabase.getInstance(context).getAll()
+                val array = com.getcapacitor.JSArray()
+                items.forEach { item ->
+                    val obj = JSObject().apply {
+                        put("number", item.number)
+                        put("name", item.name)
+                        put("entityType", item.entityType)
+                        put("entityId", item.entityId)
+                    }
+                    array.put(obj)
+                }
+                call.resolve(JSObject().apply { put("items", array) })
+            } catch (e: Exception) {
+                call.reject("Failed to fetch all tracked items", e)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun getTrackedNumbersByEntity(call: PluginCall) {
+        val entityType = call.getString("entityType") ?: return call.reject("entityType is required")
+        execute {
+            try {
+                val items = CallFilterDatabase.getInstance(context).getByEntity(entityType)
+                val array = com.getcapacitor.JSArray()
+                items.forEach { item ->
+                    val obj = JSObject().apply {
+                        put("number", item.number)
+                        put("name", item.name)
+                        put("entityType", item.entityType)
+                        put("entityId", item.entityId)
+                    }
+                    array.put(obj)
+                }
+                call.resolve(JSObject().apply { put("items", array) })
+            } catch (e: Exception) {
+                call.reject("Failed to fetch items by entity", e)
+            }
+        }
     }
 
     private fun getContactNameByNumber(phoneNumber: String): String? {

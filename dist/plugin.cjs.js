@@ -52,26 +52,6 @@ class CallManagerWeb extends core.WebPlugin {
             throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
         });
     }
-    startRecording() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
-        });
-    }
-    pauseRecording() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
-        });
-    }
-    resumeRecording() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
-        });
-    }
-    stopRecording() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
-        });
-    }
     getPendingSubmissions() {
         return __awaiter(this, void 0, void 0, function* () {
             throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
@@ -92,12 +72,67 @@ class CallManagerWeb extends core.WebPlugin {
             throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
         });
     }
+    setTrackingMode(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    getTrackingMode() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    addTrackedNumbers(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    removeTrackedNumbers(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    removeAllTrackedNumbers() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    removeTrackedNumbersByEntity(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    removeTrackedNumbersByEntityId(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    getAllTrackedNumbers() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    getTrackedNumbersByEntity(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
     showOverlay(_options) {
         return __awaiter(this, void 0, void 0, function* () {
             throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
         });
     }
     hideOverlay() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    setOverlayConfig(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    submitOverlayResult(_data) {
         return __awaiter(this, void 0, void 0, function* () {
             throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
         });

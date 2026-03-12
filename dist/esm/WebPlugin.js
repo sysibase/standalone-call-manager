@@ -49,26 +49,6 @@ export class CallManagerWeb extends WebPlugin {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
         });
     }
-    startRecording() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-        });
-    }
-    pauseRecording() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-        });
-    }
-    resumeRecording() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-        });
-    }
-    stopRecording() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-        });
-    }
     getPendingSubmissions() {
         return __awaiter(this, void 0, void 0, function* () {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
@@ -89,12 +69,67 @@ export class CallManagerWeb extends WebPlugin {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
         });
     }
+    setTrackingMode(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    getTrackingMode() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    addTrackedNumbers(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    removeTrackedNumbers(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    removeAllTrackedNumbers() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    removeTrackedNumbersByEntity(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    removeTrackedNumbersByEntityId(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    getAllTrackedNumbers() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    getTrackedNumbersByEntity(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
     showOverlay(_options) {
         return __awaiter(this, void 0, void 0, function* () {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
         });
     }
     hideOverlay() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    setOverlayConfig(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    submitOverlayResult(_data) {
         return __awaiter(this, void 0, void 0, function* () {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
         });

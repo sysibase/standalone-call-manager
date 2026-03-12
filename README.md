@@ -11,13 +11,13 @@ A powerful, standalone Capacitor plugin for **Android** that provides comprehens
 ## 🚀 Key Features
 
 *   📞 **Call Logs**: High-performance retrieval of device call history with advanced filtering.
-*   👥 **Contacts Access**: Fast contact list fetching with integrated search.
+*   👥 **Contacts Access**: Fast contact list fetching
 *   🖼️ **CRM Overlay**: 
+    *   **React Design Support (NEW)**: Use your own React components as overlays. No XML needed!
     *   **Persistent Design**: Works globally even if the app is force-closed or the phone is restarted.
     *   **Customizable UI**: Completely override the native design with your own branding.
     *   **Data Protection**: Native queuing ensures lead data is never lost during offline sessions.
 *   🔄 **Hybrid Mode**: Easily toggle between Global Background mode and App-Only foreground mode.
-*   🎙️ **Experimental Recording**: Built-in support for native call recording.
 
 ---
 
@@ -93,10 +93,15 @@ if (submissions.length > 0) {
 
 ---
 
-## 🎨 UI Customization
+## 🎨 UI & Customization
 
-You can completely replace the native UI with your own brand. 
-Check out the [**Customization Guide**](./brain/CUSTOM_UI.md) to learn how to override the XML layouts.
+### Option A: Design in React (Recommended)
+You can now design your overlay using React/CSS. No Android experience required.
+Check out the [**WebView Portal Guide**](./brain/WEB_OVERLAY_GUIDE.md) for details.
+
+### Option B: Native XML Branding
+Override the internal XML layouts for maximum performance.
+Check out the [**Native XML Guide**](./brain/CUSTOM_UI.md).
 
 ---
 
@@ -108,7 +113,6 @@ Check out the [**Customization Guide**](./brain/CUSTOM_UI.md) to learn how to ov
 | `getContacts(search)` | Search and fetch contacts. | Android |
 | `showOverlay(data)` | Manually trigger the CRM popup. | Android |
 | `hideOverlay()` | Close the active overlay. | Android |
-| `startRecording()` | Start experimental call recording. | Android |
 | `getPendingSubmissions()` | Retrieve submissions from offline mode. | Android |
 
 ---

@@ -21,12 +21,6 @@ export declare class CallManagerWeb extends WebPlugin implements CallManagerPlug
         contacts: Contact[];
         total: number;
     }>;
-    startRecording(): Promise<void>;
-    pauseRecording(): Promise<void>;
-    resumeRecording(): Promise<void>;
-    stopRecording(): Promise<{
-        filePath: string;
-    }>;
     getPendingSubmissions(): Promise<{
         submissions: any[];
     }>;
@@ -37,6 +31,47 @@ export declare class CallManagerWeb extends WebPlugin implements CallManagerPlug
     isBackgroundServiceEnabled(): Promise<{
         enabled: boolean;
     }>;
+    setTrackingMode(_options: {
+        mode: 'ALL' | 'SELECTED';
+    }): Promise<void>;
+    getTrackingMode(): Promise<{
+        mode: 'ALL' | 'SELECTED';
+    }>;
+    addTrackedNumbers(_options: {
+        items: any[];
+    }): Promise<{
+        success: boolean;
+        count: number;
+    }>;
+    removeTrackedNumbers(_options: {
+        numbers: string[];
+    }): Promise<{
+        success: boolean;
+        count: number;
+    }>;
+    removeAllTrackedNumbers(): Promise<{
+        success: boolean;
+    }>;
+    removeTrackedNumbersByEntity(_options: {
+        entityType: string;
+    }): Promise<{
+        success: boolean;
+        count: number;
+    }>;
+    removeTrackedNumbersByEntityId(_options: {
+        entityId: string;
+    }): Promise<{
+        success: boolean;
+        count: number;
+    }>;
+    getAllTrackedNumbers(): Promise<{
+        items: any[];
+    }>;
+    getTrackedNumbersByEntity(_options: {
+        entityType: string;
+    }): Promise<{
+        items: any[];
+    }>;
     showOverlay(_options: {
         number: string;
         name?: string;
@@ -44,4 +79,6 @@ export declare class CallManagerWeb extends WebPlugin implements CallManagerPlug
         mode?: 'DURING_CALL' | 'AFTER_CALL';
     }): Promise<void>;
     hideOverlay(): Promise<void>;
+    setOverlayConfig(_options: any): Promise<void>;
+    submitOverlayResult(_data: any): Promise<void>;
 }

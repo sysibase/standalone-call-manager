@@ -34,22 +34,6 @@ export class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
-  async startRecording(): Promise<void> {
-    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-  }
-
-  async pauseRecording(): Promise<void> {
-    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-  }
-
-  async resumeRecording(): Promise<void> {
-    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-  }
-
-  async stopRecording(): Promise<{ filePath: string }> {
-    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-  }
-
   async getPendingSubmissions(): Promise<{ submissions: any[] }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
@@ -66,11 +50,55 @@ export class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
+  async setTrackingMode(_options: { mode: 'ALL' | 'SELECTED' }): Promise<void> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async getTrackingMode(): Promise<{ mode: 'ALL' | 'SELECTED' }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async addTrackedNumbers(_options: { items: any[] }): Promise<{ success: boolean; count: number }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async removeTrackedNumbers(_options: { numbers: string[] }): Promise<{ success: boolean; count: number }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async removeAllTrackedNumbers(): Promise<{ success: boolean }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async removeTrackedNumbersByEntity(_options: { entityType: string }): Promise<{ success: boolean; count: number }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async removeTrackedNumbersByEntityId(_options: { entityId: string }): Promise<{ success: boolean; count: number }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async getAllTrackedNumbers(): Promise<{ items: any[] }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async getTrackedNumbersByEntity(_options: { entityType: string }): Promise<{ items: any[] }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
   async showOverlay(_options: { number: string; name?: string; duration?: number; mode?: 'DURING_CALL' | 'AFTER_CALL' }): Promise<void> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
   async hideOverlay(): Promise<void> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async setOverlayConfig(_options: any): Promise<void> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async submitOverlayResult(_data: any): Promise<void> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 }

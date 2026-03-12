@@ -156,10 +156,10 @@ object CallLogHelper {
                 }
             }
         } catch (e: SecurityException) {
-            Log.e(TAG, "READ_CALL_LOG permission denied", e)
+            Log.e(TAG, "READ_CALL_LOG permission denied during query", e)
             throw e
         } catch (e: Exception) {
-            Log.e(TAG, "Error querying call logs", e)
+            Log.e(TAG, "Unexpected error querying call logs", e)
         } finally {
             cursor?.close()
         }

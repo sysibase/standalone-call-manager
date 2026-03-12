@@ -69,6 +69,33 @@ window.customElements.define(
           <button class="button" id="btn-sync">Sync Background Results</button>
         </div>
 
+        <div style="background: #eee; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+          <div style="margin-bottom: 10px;">
+            <strong>Tracking Mode:</strong>
+            <select id="sel-tracking-mode">
+              <option value="ALL">All Calls</option>
+              <option value="SELECTED">Tracked Numbers Only</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 5px;">
+            <input type="text" id="txt-number" placeholder="Phone Number (+123...)" style="padding: 5px;">
+            <input type="text" id="txt-name" placeholder="Name (e.g. John Doe)" style="padding: 5px;">
+            <div style="display: flex; gap: 5px;">
+              <select id="sel-entity-type" style="padding: 5px; flex: 1;">
+                <option value="SALES">Sales (Lead)</option>
+                <option value="CRM">CRM (Customer)</option>
+                <option value="EMPLOYEE">Internal (Employee)</option>
+              </select>
+              <input type="text" id="txt-entity-id" placeholder="ID (e.g. lead_001)" style="padding: 5px; flex: 1;">
+            </div>
+            <button class="button" id="btn-add-number" style="margin:0;">Add with Metadata</button>
+          </div>
+          <div>
+            <button class="button" id="btn-list-numbers" style="padding: 5px 10px;">List Tracked</button>
+            <button class="button" id="btn-clear-numbers" style="padding: 5px 10px; background: #e53e3e;">Clear All</button>
+          </div>
+        </div>
+
         <div id="output">Output will appear here...</div>
       </main>
     </div>
@@ -159,16 +186,103 @@ window.customElements.define(
 
       self.shadowRoot.querySelector('#btn-show-overlay').addEventListener('click', async () => {
         try {
+          // Clear portal for native test
+          await CallManager.setOverlayConfig({ url: "" });
           await CallManager.showOverlay({
               number: "+91 9876543210",
-              name: "John Doe (Lead)",
-              duration: 125, // 2m 5s
+              name: "John Doe (Native)",
+              duration: 125,
               mode: 'AFTER_CALL'
           });
-          logToView({ action: "showOverlay", message: "Overlay triggered manually" });
         } catch (e) {
           logToView({ error: e.message });
         }
+      });
+
+      self.shadowRoot.querySelector('#btn-portal').addEventListener('click', async () => {
+        try {
+          output.textContent = "Setting up Web Portal...";
+          // In a real app, this would be '/overlay'
+          // For this test, we use a data URL or a relative path we'll create
+          await CallManager.setOverlayConfig({ 
+              url: "/overlay.html",
+              height: 400,
+              width: 320
+          });
+          
+          await CallManager.showOverlay({
+              number: "+91 9999999999",
+              name: "Investor (React Design)",
+              duration: 300,
+              mode: 'AFTER_CALL'
+          });
+          logToView({ action: "setOverlayConfig", status: "success" });
+        } catch (e) {
+          logToView({ error: e.message });
+        }
+      });
+
+      const trackingSelect = self.shadowRoot.querySelector('#sel-tracking-mode');
+      const numberInput = self.shadowRoot.querySelector('#txt-number');
+
+      // Load tracking mode
+      CallManager.getTrackingMode().then(res => {
+          trackingSelect.value = res.mode;
+      });
+
+      trackingSelect.addEventListener('change', async (e) => {
+          try {
+              await CallManager.setTrackingMode({ mode: e.target.value });
+              logToView({ tracking_mode: e.target.value });
+          } catch (err) {
+              logToView({ error: err.message });
+          }
+      });
+
+      self.shadowRoot.querySelector('#btn-add-number').addEventListener('click', async () => {
+          try {
+              const num = numberInput.value.trim();
+              const name = self.shadowRoot.querySelector('#txt-name').value.trim();
+              const entityType = self.shadowRoot.querySelector('#sel-entity-type').value;
+              const entityId = self.shadowRoot.querySelector('#txt-entity-id').value.trim();
+              
+              if (!num) return alert("Enter a number");
+              
+              const item = { 
+                  number: num, 
+                  name: name || undefined, 
+                  entityType: entityType, 
+                  entityId: entityId || undefined 
+              };
+              
+              await CallManager.addTrackedNumbers({ items: [item] });
+              
+              numberInput.value = "";
+              self.shadowRoot.querySelector('#txt-name').value = "";
+              self.shadowRoot.querySelector('#txt-entity-id').value = "";
+              
+              logToView({ action: "added", item });
+          } catch (err) {
+              logToView({ error: err.message });
+          }
+      });
+
+      self.shadowRoot.querySelector('#btn-list-numbers').addEventListener('click', async () => {
+          try {
+              const res = await CallManager.getAllTrackedNumbers();
+              logToView(res);
+          } catch (err) {
+              logToView({ error: err.message });
+          }
+      });
+
+      self.shadowRoot.querySelector('#btn-clear-numbers').addEventListener('click', async () => {
+          try {
+              await CallManager.removeAllTrackedNumbers();
+              logToView({ action: "cleared_all" });
+          } catch (err) {
+              logToView({ error: err.message });
+          }
       });
 
       self.shadowRoot.querySelector('#btn-hide-overlay').addEventListener('click', async () => {

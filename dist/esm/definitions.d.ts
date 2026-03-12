@@ -4,8 +4,8 @@ export interface PermissionStatus {
     phoneState: PermissionState;
     callPhone: PermissionState;
     contacts: PermissionState;
-    microphone: PermissionState;
     overlay: PermissionState;
+    notifications: PermissionState;
 }
 export declare enum CallType {
     INCOMING = "INCOMING",
@@ -60,6 +60,27 @@ export interface CallOverlaySubmittedPayload {
     duration: number;
     timestamp: number;
 }
+export interface OverlayConfig {
+    /**
+     * The relative or absolute URL to load in the overlay WebView.
+     * Example: '/call-overlay' or 'http://localhost/call-overlay'
+     */
+    url?: string;
+    /**
+     * Optional custom height for the floating window in DP.
+     */
+    height?: number;
+    /**
+     * Optional custom width for the floating window in DP.
+     */
+    width?: number;
+}
+export interface TrackedItem {
+    number: string;
+    name?: string;
+    entityType?: string;
+    entityId?: string;
+}
 export interface CallManagerPlugin {
     /**
      * Check the status of all necessary permissions.
@@ -104,6 +125,7 @@ export interface CallManagerPlugin {
      * iOS: Requires `contacts` permission. Returns identical format.
      * Web: Throws Unimplemented.
      */
+    /** Search for contacts */
     getContacts(options: {
         search?: string;
         limit?: number;
@@ -111,16 +133,6 @@ export interface CallManagerPlugin {
     }): Promise<{
         contacts: Contact[];
         total: number;
-    }>;
-    /**
-     * Start microphone recording (Android only).
-     */
-    startRecording(): Promise<void>;
-    /**
-     * Stop recording and retrieve the file path.
-     */
-    stopRecording(): Promise<{
-        filePath: string;
     }>;
     /**
      * Retrieve any overlay results that were saved while the app was closed (Android only).
@@ -146,6 +158,76 @@ export interface CallManagerPlugin {
         enabled: boolean;
     }>;
     /**
+     * Set the tracking mode for overlays (Android only).
+     * 'ALL' - Show overlay for every call.
+     * 'SELECTED' - Only show for numbers in the tracked list.
+     */
+    setTrackingMode(options: {
+        mode: 'ALL' | 'SELECTED';
+    }): Promise<void>;
+    /**
+     * Get the current tracking mode.
+     */
+    getTrackingMode(): Promise<{
+        mode: 'ALL' | 'SELECTED';
+    }>;
+    /**
+     * Add numbers to the white-list for selective tracking (Android only).
+     */
+    addTrackedNumbers(options: {
+        items: TrackedItem[];
+    }): Promise<{
+        success: boolean;
+        count: number;
+    }>;
+    /**
+     * Remove specific numbers from the white-list (Android only).
+     */
+    removeTrackedNumbers(options: {
+        numbers: string[];
+    }): Promise<{
+        success: boolean;
+        count: number;
+    }>;
+    /**
+     * Clear the entire white-list (Android only).
+     */
+    removeAllTrackedNumbers(): Promise<{
+        success: boolean;
+    }>;
+    /**
+     * Remove all tracked numbers belonging to a specific entity type (Android only).
+     */
+    removeTrackedNumbersByEntity(options: {
+        entityType: string;
+    }): Promise<{
+        success: boolean;
+        count: number;
+    }>;
+    /**
+     * Remove all tracked numbers belonging to a specific entity ID (Android only).
+     */
+    removeTrackedNumbersByEntityId(options: {
+        entityId: string;
+    }): Promise<{
+        success: boolean;
+        count: number;
+    }>;
+    /**
+     * Get all currently tracked numbers.
+     */
+    getAllTrackedNumbers(): Promise<{
+        items: TrackedItem[];
+    }>;
+    /**
+     * Get all tracked numbers belonging to a specific entity type (Android only).
+     */
+    getTrackedNumbersByEntity(options: {
+        entityType: string;
+    }): Promise<{
+        items: TrackedItem[];
+    }>;
+    /**
      * Manually trigger the CRM overlay (Android only).
      */
     showOverlay(options: {
@@ -158,27 +240,53 @@ export interface CallManagerPlugin {
      * Manually dismiss any active overlay (Android only).
      */
     hideOverlay(): Promise<void>;
+    /**
+     * Configure a web-based overlay portal (Android only).
+     * Providing a URL will disable the default native XML UI.
+     */
+    setOverlayConfig(options: OverlayConfig): Promise<void>;
+    /**
+     * Submit data from a Web Overlay portal back to the main app (Android only).
+     */
+    submitOverlayResult(data: CallOverlaySubmittedPayload): Promise<void>;
     /** Listens for an incoming ringing call */
     addListener(eventName: 'callIncoming', listenerFunc: (data: {
         number: string;
         name: string;
+        entityType?: string;
+        entityId?: string;
         timestamp: number;
     }) => void): any;
     /** Listens for a connected/active call */
     addListener(eventName: 'callStarted', listenerFunc: (data: {
         number: string;
         name: string;
+        entityType?: string;
+        entityId?: string;
         startTime: number;
     }) => void): any;
     /** Listens for call completion */
     addListener(eventName: 'callEnded', listenerFunc: (data: {
         number: string;
         name: string;
+        entityType?: string;
+        entityId?: string;
         duration: number;
         endTime: number;
     }) => void): any;
     /** Fired when the native post-call CRM overlay is submitted (Android only) */
     addListener(eventName: 'callOverlaySubmitted', listenerFunc: (data: CallOverlaySubmittedPayload) => void): any;
+    /** Fired when the call overlay is successfully opened (Android only) */
+    addListener(eventName: 'callOverlayOpened', listenerFunc: (data: {
+        number: string;
+        entityType?: string;
+        entityId?: string;
+        timestamp: number;
+    }) => void): any;
+    /** Fired when the call overlay is closed (Android only) */
+    addListener(eventName: 'callOverlayClosed', listenerFunc: (data: {
+        timestamp: number;
+    }) => void): any;
     /** Remove all active listeners */
     removeAllListeners(): Promise<void>;
 }

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.telephony.TelephonyManager
+import android.util.Log
 
 class CallStateReceiver : BroadcastReceiver() {
     companion object {
@@ -34,7 +35,8 @@ class CallStateReceiver : BroadcastReceiver() {
                 
                 // If the app is killed completely, the plugin is null, but we still want the overlay.
                 if (plugin == null) {
-                    launchNativeOverlayTrigger(context, incomingNumber, 0, "DURING_CALL")
+                    val details = CallFilterDatabase.getInstance(context).getDetails(incomingNumber)
+                    launchNativeOverlayTrigger(context, incomingNumber, 0, "DURING_CALL", details)
                 }
             }
             TelephonyManager.EXTRA_STATE_IDLE -> {
@@ -47,7 +49,8 @@ class CallStateReceiver : BroadcastReceiver() {
                     plugin?.emitCallEnded(incomingNumber, null, callStartTime, endTime)
                     
                     if (plugin == null) {
-                        launchNativeOverlayTrigger(context, incomingNumber, duration, "AFTER_CALL")
+                        val details = CallFilterDatabase.getInstance(context).getDetails(incomingNumber)
+                        launchNativeOverlayTrigger(context, incomingNumber, duration, "AFTER_CALL", details)
                     }
                 } else if (wasRinging && isIncoming) {
                     plugin?.emitCallEnded(incomingNumber, null, 0L, System.currentTimeMillis())
@@ -60,7 +63,7 @@ class CallStateReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun launchNativeOverlayTrigger(context: Context, number: String, duration: Int, mode: String) {
+    private fun launchNativeOverlayTrigger(context: Context, number: String, duration: Int, mode: String, details: CallFilterDatabase.TrackedItem? = null) {
         val prefs = context.getSharedPreferences("CallManagerConfig", Context.MODE_PRIVATE)
         val backgroundEnabled = prefs.getBoolean("background_enabled", true)
         
@@ -69,14 +72,26 @@ class CallStateReceiver : BroadcastReceiver() {
             return
         }
 
+        val trackingMode = prefs.getString("tracking_mode", "ALL") ?: "ALL"
+        if (trackingMode == "SELECTED") {
+            if (details == null) {
+                Log.d("CallManager", "Number $number is not in tracking list, skipping overlay.")
+                return
+            }
+        }
+        
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(context)) return
         
         // Native fallback contact fetching since it's unlinked from Cap runtime context
-        var contactName = ""
-        if (number.isNotBlank()) {
-             val uri = android.net.Uri.withAppendedPath(android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI, android.net.Uri.encode(number))
-             val cursor = context.contentResolver.query(uri, arrayOf(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME), null, null, null)
-             cursor?.use { if (it.moveToFirst()) contactName = it.getString(it.getColumnIndexOrThrow(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME)) }
+        var contactName = details?.name ?: ""
+        try {
+            if (contactName.isBlank() && number.isNotBlank()) {
+                val uri = android.net.Uri.withAppendedPath(android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI, android.net.Uri.encode(number))
+                val cursor = context.contentResolver.query(uri, arrayOf(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME), null, null, null)
+                cursor?.use { if (it.moveToFirst()) contactName = it.getString(it.getColumnIndexOrThrow(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME)) }
+            }
+        } catch (e: Exception) {
+            Log.e("CallManager", "Failed to fetch contact name in background", e)
         }
 
         val intent = Intent(context, CallOverlayService::class.java).apply {
@@ -84,6 +99,10 @@ class CallStateReceiver : BroadcastReceiver() {
             putExtra("name", contactName)
             putExtra("duration", duration)
             putExtra("mode", mode)
+            if (details != null) {
+                putExtra("entityType", details.entityType)
+                putExtra("entityId", details.entityId)
+            }
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
