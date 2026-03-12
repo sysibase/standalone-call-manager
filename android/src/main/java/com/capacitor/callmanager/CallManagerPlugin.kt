@@ -33,6 +33,18 @@ import java.io.File
         Permission(strings = ["android.permission.POST_NOTIFICATIONS"], alias = "notifications"),
     ]
 )
+/**
+ * CallManagerPlugin — The Main Orchestrator
+ * =============================================================================
+ * Yeh plugin frontend (TypeScript) aur native Android features (CallLogs, Contacts, Overlay)
+ * ke beech ka main bridge hai.
+ * 
+ * DESIGN PHILOSOPHY:
+ *  - Non-Blocking: Bhari operations (DB sync, log fetching) 'execute' block mein hote hain.
+ *  - Fault Tolerant: Har method mein range checks aur null-safety ka dhyan rakha gaya hai.
+ *  - Memory Efficient: Large lists fetch karne ke liye cursor-based helpers use hote hain.
+ * =============================================================================
+ */
 class CallManagerPlugin : Plugin() {
     companion object {
         var instance: CallManagerPlugin? = null
@@ -382,6 +394,8 @@ class CallManagerPlugin : Plugin() {
     fun addTrackedNumbers(call: PluginCall) {
         val itemsArray = call.getArray("items") ?: com.getcapacitor.JSArray()
         val items = mutableListOf<CallFilterDatabase.TrackedItem>()
+        
+        // Loop through the input array and map to our internal model.
         for (i in 0 until itemsArray.length()) {
             val obj = itemsArray.getJSONObject(i)
             items.add(CallFilterDatabase.TrackedItem(

@@ -21,6 +21,20 @@ import androidx.core.app.NotificationCompat
 import com.getcapacitor.JSObject
 import java.net.URLEncoder
 
+/**
+ * CallOverlayService — Floating CRM Portal
+ * =============================================================================
+ * Yeh ek Foreground Service hai jo call ke waqt ya baad mein screen pe overlay dikhati hai.
+ * 
+ * WHY SERVICE?
+ *  - Kyunki jab user kisi aur app mein ho ya call screen pe ho, tab bhi hamara UI dikhna chahiye.
+ *  - Foreground service ensured hai ki Android system isse easily kill na kare.
+ * 
+ * WEBVIEW BRIDGE:
+ *  - 'CallManagerBridge' name se ek JavaScript interface inject kiya jata hai.
+ *  - Overlay (React/HTML) se 'close()', 'submitResult()', ya 'openApp()' calls handle karta hai.
+ * =============================================================================
+ */
 class CallOverlayService : Service() {
     companion object {
         private const val NOTIFICATION_ID = 1001
@@ -141,6 +155,7 @@ class CallOverlayService : Service() {
                     }
                     stopSelf()
                 } catch (e: Exception) {
+                    // Agar koi error aata hai to console pe log hoga taaki debugging easy ho.
                     Log.e("CallOverlayService", "Failed to submit overlay result via bridge", e)
                 }
             }

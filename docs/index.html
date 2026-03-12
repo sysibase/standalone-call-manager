@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capacitor Call Manager | Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --gradient: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            --glass: rgba(30, 41, 59, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero Background */
+        .glow {
+            position: fixed;
+            top: -100px;
+            right: -100px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(80px);
+        }
+
+        .glow-2 {
+            position: fixed;
+            bottom: -100px;
+            left: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(80px);
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        header {
+            padding: 4rem 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 4rem;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Navigation Sidebar */
+        aside {
+            width: 280px;
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+            display: none; /* Hidden on mobile */
+        }
+
+        @media (min-width: 1024px) {
+            aside { display: block; }
+        }
+
+        .nav-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            color: var(--text);
+            background: var(--primary);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding-bottom: 10rem;
+        }
+
+        section {
+            margin-bottom: 6rem;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 2.5rem 0 1rem;
+            color: var(--text);
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: #020617;
+            padding: 1.5rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            margin: 1.5rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            color: #e2e8f0;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            color: white;
+            background: var(--primary);
+        }
+
+        /* Table */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            margin: 2rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Badge */
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.2rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-right: 0.5rem;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="glow-2"></div>
+
+    <header>
+        <div class="container" style="justify-content: center;">
+            <div style="text-align: center;">
+                <div class="badge" style="margin-bottom: 2rem; padding: 0.5rem 1.5rem; font-size: 0.9rem;">Version 1.0.5 Release</div>
+                <h1 class="hero-title">Capacitor Call Manager</h1>
+                <p class="hero-subtitle">Production-grade telephony & CRM infrastructure for modern Capacitor apps. Handle calls, contacts, and custom overlays with ease.</p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <a href="#quick-start" class="feature-card" style="padding: 1rem 2rem; text-decoration: none; background: var(--primary); color: white;">Get Started</a>
+                    <a href="https://github.com/SYS-IBASE/standalone-call-manager" class="feature-card" style="padding: 1rem 2rem; text-decoration: none; background: transparent;">GitHub Source</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside>
+            <div class="nav-card">
+                <a href="#features" class="nav-item">Features</a>
+                <a href="#installation" class="nav-item">Installation</a>
+                <a href="#quick-start" class="nav-item">Quick Start</a>
+                <a href="#multi-entity" class="nav-item">Multi-Entity Tracking</a>
+                <a href="#api-reference" class="nav-item">API Reference</a>
+                <a href="#permissions" class="nav-item">Permissions</a>
+                <a href="#react-overlays" class="nav-item">React Overlays</a>
+            </div>
+        </aside>
+
+        <main>
+            <section id="features">
+                <h2>🚀 Key Capabilities</h2>
+                <div class="card-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📞</div>
+                        <h3>Call Intelligence</h3>
+                        <p>High-performance retrieval of device call history with advanced sorting and filtering by duration, type, and more.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎭</div>
+                        <h3>Multi-Entity</h3>
+                        <p>Differentiate between Sales, CRM, and Internal Team members with unique contextual IDs and tailored UIs.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🖼️</div>
+                        <h3>Smart Overlays</h3>
+                        <p>Render interactive Web views during calls. Fully context-aware and persistent even after device reboots.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔄</div>
+                        <h3>Offline Sync</h3>
+                        <p>Native queuing ensures user interactions captured while the app is closed are never lost and sync on next launch.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="installation">
+                <h2>📦 Installation</h2>
+                <p>Install the package via NPM and sync your project.</p>
+                <pre><code>npm install capacitor-call-manager
+npx cap sync</code></pre>
+            </section>
+
+            <section id="quick-start">
+                <h2>🛠️ Quick Start</h2>
+                <p>Initialize the plugin and request necessary permissions in your main application logic.</p>
+                <pre><code>import { CallManager } from 'capacitor-call-manager';
+
+async function setup() {
+  // Request required Android permissions
+  const status = await CallManager.requestPermissions();
+  
+  if (status.overlay !== 'granted') {
+    // Required to show the CRM popup
+    await CallManager.requestOverlayPermission();
+  }
+
+  // Activate background monitoring
+  await CallManager.startCallListener();
+}</code></pre>
+            </section>
+
+            <section id="multi-entity">
+                <h2>🎭 Multi-Entity Tracking</h2>
+                <p>Categorize your numbers to show different UIs for Leads, Customers, or Employees.</p>
+                <pre><code>await CallManager.addTrackedNumbers({
+  items: [
+    { 
+      number: '+1234567', 
+      name: 'John Doe', 
+      entityType: 'SALES', 
+      entityId: 'lead_99' 
+    },
+    { 
+      number: '+9876543', 
+      name: 'Sarah Smith', 
+      entityType: 'CRM', 
+      entityId: 'cust_45' 
+    }
+  ]
+});</code></pre>
+                <p>When Sarah calls, your overlay will receive <code class="tag">?entityType=CRM&entityId=cust_45</code> in the URL query string.</p>
+            </section>
+
+            <section id="api-reference">
+                <h2>📚 API Reference</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Return Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>addTrackedNumbers</code></td>
+                                <td><code>Promise<{success, count}></code></td>
+                                <td>Syncs numbers with metadata to the native DB.</td>
+                            </tr>
+                            <tr>
+                                <td><code>getCallLogs</code></td>
+                                <td><code>Promise<{logs: CallLog[]}></code></td>
+                                <td>Retrieves system call history.</td>
+                            </tr>
+                            <tr>
+                                <td><code>removeTrackedNumbersByEntity</code></td>
+                                <td><code>Promise<{success, count}></code></td>
+                                <td>Surgical cleanup by category.</td>
+                            </tr>
+                            <tr>
+                                <td><code>getPendingSubmissions</code></td>
+                                <td><code>Promise<{submissions}></code></td>
+                                <td>Fetches offline user interactions.</td>
+                            </tr>
+                            <tr>
+                                <td><code>setBackgroundServiceEnabled</code></td>
+                                <td><code>Promise<void></code></td>
+                                <td>Toggles Global vs App-Only mode.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="permissions">
+                <h2>🛡️ Security & Permissions</h2>
+                <p>The plugin handles high-sensitivity data. Ensure your <code>AndroidManifest.xml</code> includes:</p>
+                <pre><code>&lt;uses-permission android:name="android.permission.READ_CALL_LOG" /&gt;
+&lt;uses-permission android:name="android.permission.READ_PHONE_STATE" /&gt;
+&lt;uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /&gt;
+&lt;uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /&gt;
+&lt;uses-permission android:name="android.permission.POST_NOTIFICATIONS" /&gt;</code></pre>
+            </section>
+        </main>
+    </div>
+
+    <footer style="padding: 4rem 0; border-top: 1px solid var(--border); text-align: center; color: var(--text-dim);">
+        <p>© 2026 SYS-IBASE. Built with ⚡ for the Capacitor Ecosystem.</p>
+    </footer>
+
+    <script>
+        // Smooth scroll spy for sidebar
+        const sections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href').slice(1) === current) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

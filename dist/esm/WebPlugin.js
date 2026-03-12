@@ -8,6 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { WebPlugin, CapacitorException, ExceptionCode } from '@capacitor/core';
+/**
+ * CallManagerWeb — Web Compatibility Layer
+ * =============================================================================
+ * Yeh plugin primarily Android features (Telephony, Overlays) ke liye design kiya gaya hai.
+ * Web version implementation nahi karta par 'Unimplemented' errors handle karta hai,
+ * taaki apka React/Angular code desktop browsers pe crash na ho.
+ * =============================================================================
+ */
 export class CallManagerWeb extends WebPlugin {
     checkPermissions() {
         return __awaiter(this, void 0, void 0, function* () {

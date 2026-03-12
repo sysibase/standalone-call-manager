@@ -1,5 +1,13 @@
 import { WebPlugin } from '@capacitor/core';
 import type { CallManagerPlugin, PermissionStatus, CallLog, GetCallLogsOptions, Contact } from './definitions';
+/**
+ * CallManagerWeb — Web Compatibility Layer
+ * =============================================================================
+ * Yeh plugin primarily Android features (Telephony, Overlays) ke liye design kiya gaya hai.
+ * Web version implementation nahi karta par 'Unimplemented' errors handle karta hai,
+ * taaki apka React/Angular code desktop browsers pe crash na ho.
+ * =============================================================================
+ */
 export declare class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
     checkPermissions(): Promise<PermissionStatus>;
     requestPermissions(): Promise<PermissionStatus>;

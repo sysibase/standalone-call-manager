@@ -1,3 +1,10 @@
+/**
+ * CallManager Definitions — Central API Contract
+ * =============================================================================
+ * Yeh file plugin ke sare public methods, events aur data models ko define karti hai.
+ * React/Angular apps in interfaces ko use karke type-safe implementation kar sakte hain.
+ * =============================================================================
+ */
 import type { PermissionState } from '@capacitor/core';
 
 export interface PermissionStatus {
@@ -85,6 +92,12 @@ export interface OverlayConfig {
   width?: number;
 }
 
+/**
+ * TrackedItem Interface
+ * =============================================================================
+ * Database mein save hone wala har lead ya contact is format mein hota hai.
+ * 'entityType' aur 'entityId' ki wajah se overlay ko context milta hai.
+ */
 export interface TrackedItem {
   number: string;
   name?: string;

@@ -11,6 +11,14 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+/**
+ * CallManagerWeb — Web Compatibility Layer
+ * =============================================================================
+ * Yeh plugin primarily Android features (Telephony, Overlays) ke liye design kiya gaya hai.
+ * Web version implementation nahi karta par 'Unimplemented' errors handle karta hai,
+ * taaki apka React/Angular code desktop browsers pe crash na ho.
+ * =============================================================================
+ */
 class CallManagerWeb extends core.WebPlugin {
     checkPermissions() {
         return __awaiter(this, void 0, void 0, function* () {

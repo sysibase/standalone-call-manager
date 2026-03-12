@@ -6,6 +6,21 @@ import android.content.Intent
 import android.telephony.TelephonyManager
 import android.util.Log
 
+/**
+ * CallStateReceiver — The Early Warning System
+ * =============================================================================
+ * Yeh BroadcastReceiver system ke phone state changes (Ringing, Offhook, Idle) ko listen karta hai.
+ * 
+ * CORE LOGIC:
+ *  - Ringing: Incoming number detect karta hai.
+ *  - Offhook: Call start hone ka timestamp record karta hai.
+ *  - Idle: Call end hone par duration calculate karta hai aur overlay trigger karta hai.
+ * 
+ * PERSISTENCE:
+ *  - Agar app killed (plugin == null) hai, tab bhi yeh receiver database se lead status check karke
+ *    native overlay service ko start kar deta hai.
+ * =============================================================================
+ */
 class CallStateReceiver : BroadcastReceiver() {
     companion object {
         private var lastState = TelephonyManager.EXTRA_STATE_IDLE
@@ -33,7 +48,7 @@ class CallStateReceiver : BroadcastReceiver() {
                 callStartTime = System.currentTimeMillis(); lastState = TelephonyManager.EXTRA_STATE_OFFHOOK
                 plugin?.emitCallStarted(incomingNumber, null, callStartTime)
                 
-                // If the app is killed completely, the plugin is null, but we still want the overlay.
+                // Agar app dead/killed hai, to plugin null hoga. Is case mein bhi overlay trigger karna hai.
                 if (plugin == null) {
                     val details = CallFilterDatabase.getInstance(context).getDetails(incomingNumber)
                     launchNativeOverlayTrigger(context, incomingNumber, 0, "DURING_CALL", details)

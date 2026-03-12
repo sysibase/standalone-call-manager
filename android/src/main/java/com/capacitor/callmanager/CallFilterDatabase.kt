@@ -6,6 +6,18 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
+/**
+ * CallFilterDatabase — Persistent Whitelist Engine
+ * =============================================================================
+ * Yeh database un specific numbers ko store karta hai jinhe hum track karna chahte hain.
+ * selective mode mein yeh database filter ka kaam karta hai.
+ * 
+ * FEATURES:
+ *  - Primary Key: Number unique hona chahiye (duplicates automatically handle hote hain)
+ *  - Entity Metadata: Sales/CRM/Employee ke contextual IDs store hote hain.
+ *  - Direct Boot: Device reboot hone par bhi access possible hai.
+ * =============================================================================
+ */
 class CallFilterDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
@@ -73,6 +85,7 @@ class CallFilterDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_
 
     fun addTrackedItems(items: List<TrackedItem>) {
         val db = writableDatabase
+        // Transaction use kar rahe hain taaki agar beech mein error aaye to data corrupt na ho.
         db.beginTransaction()
         try {
             items.forEach { item ->
@@ -82,9 +95,13 @@ class CallFilterDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_
                     put(COL_ENTITY_TYPE, item.entityType)
                     put(COL_ENTITY_ID, item.entityId)
                 }
+                // CONFLICT_REPLACE ensures agar number already exist karta hai, to purana record update ho jayega.
                 db.insertWithOnConflict(TABLE_TRACKED, null, values, SQLiteDatabase.CONFLICT_REPLACE)
             }
             db.setTransactionSuccessful()
+        } catch (e: Exception) {
+            Log.e("CallFilterDB", "Error inserting items locally", e)
+            throw e
         } finally {
             db.endTransaction()
         }

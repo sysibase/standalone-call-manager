@@ -6,17 +6,30 @@
 
 A powerful, standalone Capacitor plugin for **Android** that provides comprehensive telephony features. Perfect for building Lead Management, CRM, or Call Identification applications.
 
+[**🌐 View Online Documentation**](https://sys-ibase.github.io/standalone-call-manager/)
+
+---
+
+## 🎯 Why This Package? (Banane ki Wajah)
+
+Standard telephony plugins for Capacitor are often limited to just reading logs. This package was born out of the need for a **Production-Ready CRM Engine** that:
+1.  **Never Misses a Lead**: Works even if your app is killed, force-closed, or the phone just restarted.
+2.  **Context is Everything**: Categorizes callers (Sales vs CRM) to show personalized data instantly.
+3.  **No Boilerplate**: Provides a built-in, customizable floating overlay that looks professional out-of-the-box.
+4.  **Privacy First**: Uses a local SQLite whitelist so you only track the numbers your business cares about.
+
 ---
 
 ## 🚀 Key Features
 
 *   📞 **Call Logs**: High-performance retrieval of device call history with advanced filtering.
-*   👥 **Contacts Access**: Fast contact list fetching
+*   👥 **Contacts Access**: Fast contact list fetching.
+*   🎭 **Multi-Entity Support (NEW)**: Manage Sales (Leads), CRM (Customers), and Internal (Employees) using unique IDs and custom designs for each.
 *   🖼️ **CRM Overlay**: 
-    *   **React Design Support (NEW)**: Use your own React components as overlays. No XML needed!
-    *   **Persistent Design**: Works globally even if the app is force-closed or the phone is restarted.
+    *   **Context-Aware**: Automatically injects entity metadata into your UI.
+    *   **React Design Support**: Use your own React components as overlays. No XML needed!
+    *   **Direct Boot Support**: Your overlays work immediately after a phone restart, even if the device is locked.
     *   **Customizable UI**: Completely override the native design with your own branding.
-    *   **Data Protection**: Native queuing ensures lead data is never lost during offline sessions.
 *   🔄 **Hybrid Mode**: Easily toggle between Global Background mode and App-Only foreground mode.
 
 ---
@@ -40,6 +53,7 @@ Add the following to your `AndroidManifest.xml` if not already present:
 <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Android 13+ -->
 ```
 
 ### 2. Basic Setup (Telephony)
@@ -57,6 +71,9 @@ async function startPlugin() {
 
   // Start the background listener
   await CallManager.startCallListener();
+
+  // Request Notifications (Required for Foreground Service on Android 13+)
+  await CallManager.requestPermissions();
 }
 ```
 
@@ -111,9 +128,11 @@ Check out the [**Native XML Guide**](./brain/CUSTOM_UI.md).
 | :--- | :--- | :---: |
 | `getCallLogs(options)` | Retrieve device call history. | Android |
 | `getContacts(search)` | Search and fetch contacts. | Android |
+| `addTrackedNumbers(items)`| Add numbers with metadata (Entity/ID) to whitelist. | Android |
+| `getTrackedNumbersByEntity()`| Fetch tracked numbers for specific category. | Android |
 | `showOverlay(data)` | Manually trigger the CRM popup. | Android |
-| `hideOverlay()` | Close the active overlay. | Android |
 | `getPendingSubmissions()` | Retrieve submissions from offline mode. | Android |
+| `removeTrackedNumbersByEntity()`| Surgical cleanup of local database. | Android |
 
 ---
 
