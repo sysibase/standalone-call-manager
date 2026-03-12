@@ -13,8 +13,10 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
+import com.getcapacitor.JSObject
 import android.webkit.WebViewClient
 import android.widget.*
 import androidx.core.app.NotificationCompat
@@ -146,7 +148,17 @@ class CallOverlayService : Service() {
         fun submitResult(dataJson: String) {
             Handler(Looper.getMainLooper()).post {
                 try {
-                    val data = JSObject(dataJson)
+                    val data = JSObject()
+                    try {
+                        val obj = org.json.JSONObject(dataJson)
+                        val keys = obj.keys()
+                        while (keys.hasNext()) {
+                            val key = keys.next()
+                            data.put(key, obj.get(key))
+                        }
+                    } catch (e: Exception) {
+                        Log.e("CallOverlayService", "JSON parse error", e)
+                    }
                     val plugin = CallManagerPlugin.instance
                     if (plugin != null) {
                         plugin.emitOverlaySubmitted(data)

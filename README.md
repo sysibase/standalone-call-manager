@@ -138,6 +138,14 @@ Check out the [**Native XML Guide**](./brain/CUSTOM_UI.md).
 
 ---
 
+## 🧪 Testing & Integration Guide
+
+For a step-by-step guide on integrating the plugin with React/Vite and a ready-to-use **Testing Dashboard**, check out:
+- [**Frontend Integration & Testing Guide**](./brain/FRONTEND_TESTING_GUIDE.md)
+- [**Plugin Tester Component (Reference)**](./brain/PluginTester.tsx)
+
+---
+
 ## 🆘 Troubleshooting
 
 ### Overlay not appearing?

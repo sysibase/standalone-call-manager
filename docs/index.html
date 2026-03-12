@@ -307,7 +307,7 @@
     <header>
         <div class="container" style="justify-content: center;">
             <div style="text-align: center;">
-                <div class="badge" style="margin-bottom: 2rem; padding: 0.5rem 1.5rem; font-size: 0.9rem;">Version 1.0.6 Release</div>
+                <div class="badge" style="margin-bottom: 2rem; padding: 0.5rem 1.5rem; font-size: 0.9rem;">Version 1.0.7 Release</div>
                 <h1 class="hero-title">Capacitor Call Manager</h1>
                 <p class="hero-subtitle">Production-grade telephony & CRM infrastructure for modern Capacitor apps. Handle calls, contacts, and custom overlays with ease.</p>
                 <div style="display: flex; gap: 1rem; justify-content: center;">
@@ -328,6 +328,7 @@
                 <a href="#api-reference" class="nav-item">API Reference</a>
                 <a href="#permissions" class="nav-item">Permissions</a>
                 <a href="#react-overlays" class="nav-item">React Overlays</a>
+                <a href="#testing-guide" class="nav-item">Frontend Testing Guide</a>
             </div>
         </aside>
 
@@ -461,6 +462,30 @@ async function setup() {
 &lt;uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /&gt;
 &lt;uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /&gt;
 &lt;uses-permission android:name="android.permission.POST_NOTIFICATIONS" /&gt;</code></pre>
+            </section>
+            <section id="testing-guide">
+                <h2>🧪 Frontend Testing Guide</h2>
+                <p>We provide a ready-mixed <b>Testing Dashboard</b> component to help you verify every API method in real-time.</p>
+                <pre><code>// 1. Copy PluginTester.tsx to your project
+// 2. Import and use in App.tsx
+import PluginTester from './components/PluginTester';
+
+function App() {
+  return &lt;PluginTester /&gt;;
+}</code></pre>
+                <div class="card-grid">
+                    <div class="feature-card">
+                        <h3>Interactive Console</h3>
+                        <p>Buttons for manual overlay triggering, database clearing, and contact searching.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Event Stream</h3>
+                        <p>Monitor <code>callIncoming</code>, <code>callStarted</code>, and <code>callEnded</code> events as they happen.</p>
+                    </div>
+                </div>
+                <p style="text-align: center;">
+                    <a href="https://github.com/SYS-IBASE/standalone-call-manager/blob/main/brain/FRONTEND_TESTING_GUIDE.md" class="feature-card" style="display: inline-block; padding: 1rem 2rem; text-decoration: none; border-color: var(--primary);">View Full Guide</a>
+                </p>
             </section>
         </main>
     </div>
