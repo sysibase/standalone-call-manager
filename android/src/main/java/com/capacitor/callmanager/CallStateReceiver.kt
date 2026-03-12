@@ -49,7 +49,13 @@ class CallStateReceiver : BroadcastReceiver() {
                 callStartTime = System.currentTimeMillis(); lastState = TelephonyManager.EXTRA_STATE_OFFHOOK
                 plugin?.emitCallStarted(incomingNumber, null, callStartTime)
                 
-                // Agar app dead/killed hai, to plugin null hoga. Is case mein bhi overlay trigger karna hai.
+                // Persist state to handle process death during a long call
+                context.getSharedPreferences("CallStateTemp", Context.MODE_PRIVATE).edit().apply {
+                    putString("last_number", incomingNumber)
+                    putLong("last_start_time", callStartTime)
+                    apply()
+                }
+
                 if (plugin == null) {
                     val details = CallFilterDatabase.getInstance(context).getDetails(incomingNumber)
                     launchNativeOverlayTrigger(context, incomingNumber, 0, "DURING_CALL", details)
@@ -60,14 +66,25 @@ class CallStateReceiver : BroadcastReceiver() {
                 val wasRinging = lastState == TelephonyManager.EXTRA_STATE_RINGING
                 
                 if (wasOffhook) {
+                    val prefs = context.getSharedPreferences("CallStateTemp", Context.MODE_PRIVATE)
+                    val savedNumber = prefs.getString("last_number", "") ?: ""
+                    val savedStartTime = prefs.getLong("last_start_time", 0L)
+                    
+                    val finalNumber = if (incomingNumber.isBlank()) savedNumber else incomingNumber
+                    val finalStartTime = if (callStartTime == 0L) savedStartTime else callStartTime
+                    
                     val endTime = System.currentTimeMillis()
-                    val duration = ((endTime - callStartTime) / 1000).toInt()
-                    plugin?.emitCallEnded(incomingNumber, null, callStartTime, endTime)
+                    val duration = if (finalStartTime > 0) ((endTime - finalStartTime) / 1000).toInt() else 0
+                    
+                    plugin?.emitCallEnded(finalNumber, null, finalStartTime, endTime)
                     
                     if (plugin == null) {
-                        val details = CallFilterDatabase.getInstance(context).getDetails(incomingNumber)
-                        launchNativeOverlayTrigger(context, incomingNumber, duration, "AFTER_CALL", details)
+                        val details = CallFilterDatabase.getInstance(context).getDetails(finalNumber)
+                        launchNativeOverlayTrigger(context, finalNumber, duration, "AFTER_CALL", details)
                     }
+                    
+                    // Cleanup persisted state
+                    prefs.edit().clear().apply()
                 } else if (wasRinging && isIncoming) {
                     plugin?.emitCallEnded(incomingNumber, null, 0L, System.currentTimeMillis())
                 } else {

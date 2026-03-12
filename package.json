@@ -1,6 +1,6 @@
 {
   "name": "capacitor-call-manager",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "description": "Standalone Capacitor plugin for Call Logs, SMS, Contacts and CRM Overlay",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",

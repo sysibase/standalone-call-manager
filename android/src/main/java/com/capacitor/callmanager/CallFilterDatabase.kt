@@ -187,8 +187,8 @@ class CallFilterDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_
     }
 
     private fun normalize(number: String): String {
-        // Strip everything except digits to ensure consistent matching (+123 -> 123)
-        return number.replace(Regex("[^0-9]"), "")
+        // Strip everything except digits and '+' to ensure consistent matching (+123 -> +123)
+        return number.replace(Regex("[^0-9+]"), "")
     }
 
     data class TrackedItem(
