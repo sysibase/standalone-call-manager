@@ -1,4 +1,4 @@
-package com.ibase.plugins.callmanager
+package com.capacitor.callmanager
 
 import android.content.BroadcastReceiver
 import android.content.Context

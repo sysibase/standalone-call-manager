@@ -1,4 +1,4 @@
-package com.ibase.plugins.callmanager
+package com.capacitor.callmanager
 
 import android.Manifest
 import android.content.Intent
@@ -31,7 +31,6 @@ import java.io.File
         Permission(strings = [Manifest.permission.READ_PHONE_STATE], alias = "phoneState"),
         Permission(strings = [Manifest.permission.CALL_PHONE], alias = "callPhone"),
         Permission(strings = [Manifest.permission.READ_CONTACTS], alias = "contacts"),
-        Permission(strings = [Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS], alias = "sms"),
         Permission(strings = [Manifest.permission.RECORD_AUDIO], alias = "microphone"),
     ]
 )
@@ -129,7 +128,6 @@ class CallManagerPlugin : Plugin() {
         result.put("phoneState", getPermissionState("phoneState").name.lowercase())
         result.put("callPhone", getPermissionState("callPhone").name.lowercase())
         result.put("contacts", getPermissionState("contacts").name.lowercase())
-        result.put("sms", getPermissionState("sms").name.lowercase())
         result.put("microphone", getPermissionState("microphone").name.lowercase())
         result.put("overlay", if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(context)) "granted" else "denied")
         call.resolve(result)
@@ -216,55 +214,6 @@ class CallManagerPlugin : Plugin() {
                 }
             } catch (e: Exception) { call.reject("UNAVAILABLE", e.message, e) }
         }
-    }
-
-    @PluginMethod
-    fun getSMSThreads(call: PluginCall) {
-        if (getPermissionState("sms") != com.getcapacitor.PermissionState.GRANTED) {
-            return call.reject("PERMISSION_DENIED", "Missing SMS permission")
-        }
-        pluginScope.launch {
-            try {
-                val threads = SMSHelper.getSMSThreads(context)
-                withContext(Dispatchers.Main) {
-                    val array = com.getcapacitor.JSArray()
-                    threads.forEach { t ->
-                        val obj = JSObject().apply { put("id", t.id); put("snippet", t.snippet); put("date", t.date); put("msgCount", t.msgCount); put("address", t.address); put("contactName", getContactNameByNumber(t.address) ?: "") }
-                        array.put(obj)
-                    }; val res = JSObject().apply { put("threads", array) }; call.resolve(res)
-                }
-            } catch (e: Exception) { call.reject("UNAVAILABLE", e.message, e) }
-        }
-    }
-
-    @PluginMethod
-    fun getSMSMessages(call: PluginCall) {
-        if (getPermissionState("sms") != com.getcapacitor.PermissionState.GRANTED) {
-            return call.reject("PERMISSION_DENIED", "Missing SMS permission")
-        }
-        val threadId = call.getString("threadId") ?: return call.reject("INVALID_ARGUMENT", "threadId required")
-        pluginScope.launch {
-            try {
-                val messages = SMSHelper.getMessagesForThread(context, threadId)
-                withContext(Dispatchers.Main) {
-                    val array = com.getcapacitor.JSArray()
-                    messages.forEach { m ->
-                        val obj = JSObject().apply { put("id", m.id); put("address", m.address); put("body", m.body); put("date", m.date); put("type", m.type) }
-                        array.put(obj)
-                    }; val res = JSObject().apply { put("messages", array) }; call.resolve(res)
-                }
-            } catch (e: Exception) { call.reject("UNAVAILABLE", e.message, e) }
-        }
-    }
-
-    @PluginMethod
-    fun sendSMS(call: PluginCall) {
-        if (getPermissionState("sms") != com.getcapacitor.PermissionState.GRANTED) {
-            return call.reject("PERMISSION_DENIED", "Missing SMS permission")
-        }
-        val nr = call.getString("number"); val msg = call.getString("message")
-        if (nr == null || msg == null) return call.reject("INVALID_ARGUMENT", "Params missing")
-        try { SMSHelper.sendSMS(nr, msg); call.resolve() } catch (e: Exception) { call.reject("UNAVAILABLE", e.message, e) }
     }
 
     @PluginMethod

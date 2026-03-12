@@ -1,4 +1,4 @@
-package com.ibase.plugins.callmanager
+package com.capacitor.callmanager
 
 import android.content.Context
 import android.database.Cursor

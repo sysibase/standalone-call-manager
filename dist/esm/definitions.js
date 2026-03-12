@@ -14,11 +14,6 @@ export var CallLogDateFilter;
     CallLogDateFilter["MONTH"] = "MONTH";
     CallLogDateFilter["ALL"] = "ALL";
 })(CallLogDateFilter || (CallLogDateFilter = {}));
-export var SMSType;
-(function (SMSType) {
-    SMSType["INCOMING"] = "INCOMING";
-    SMSType["OUTGOING"] = "OUTGOING";
-})(SMSType || (SMSType = {}));
 export var CallOverlayStatus;
 (function (CallOverlayStatus) {
     CallOverlayStatus["INTERESTED"] = "INTERESTED";

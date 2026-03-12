@@ -1,5 +1,5 @@
 import { WebPlugin, CapacitorException, ExceptionCode } from '@capacitor/core';
-import type { CallManagerPlugin, PermissionStatus, CallLog, GetCallLogsOptions, Contact, SMSThread, SMSMessage } from './definitions';
+import type { CallManagerPlugin, PermissionStatus, CallLog, GetCallLogsOptions, Contact } from './definitions';
 
 export class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
   async checkPermissions(): Promise<PermissionStatus> {
@@ -31,18 +31,6 @@ export class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
   }
 
   async getContacts(_options: { search?: string; limit?: number; offset?: number }): Promise<{ contacts: Contact[]; total: number }> {
-    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-  }
-
-  async getSMSThreads(): Promise<{ threads: SMSThread[] }> {
-    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-  }
-
-  async getSMSMessages(_options: { threadId: string }): Promise<{ messages: SMSMessage[] }> {
-    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
-  }
-
-  async sendSMS(_options: { number: string; message: string }): Promise<void> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 

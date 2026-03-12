@@ -51,21 +51,6 @@ var CapacitorCallManager = (function (exports, core) {
                 throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
             });
         }
-        getSMSThreads() {
-            return __awaiter(this, void 0, void 0, function* () {
-                throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
-            });
-        }
-        getSMSMessages(_options) {
-            return __awaiter(this, void 0, void 0, function* () {
-                throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
-            });
-        }
-        sendSMS(_options) {
-            return __awaiter(this, void 0, void 0, function* () {
-                throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
-            });
-        }
         startRecording() {
             return __awaiter(this, void 0, void 0, function* () {
                 throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
@@ -104,11 +89,6 @@ var CapacitorCallManager = (function (exports, core) {
         CallLogDateFilter["MONTH"] = "MONTH";
         CallLogDateFilter["ALL"] = "ALL";
     })(exports.CallLogDateFilter || (exports.CallLogDateFilter = {}));
-    exports.SMSType = void 0;
-    (function (SMSType) {
-        SMSType["INCOMING"] = "INCOMING";
-        SMSType["OUTGOING"] = "OUTGOING";
-    })(exports.SMSType || (exports.SMSType = {}));
     exports.CallOverlayStatus = void 0;
     (function (CallOverlayStatus) {
         CallOverlayStatus["INTERESTED"] = "INTERESTED";

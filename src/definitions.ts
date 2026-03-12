@@ -5,7 +5,6 @@ export interface PermissionStatus {
   phoneState: PermissionState;
   callPhone: PermissionState;
   contacts: PermissionState;
-  sms: PermissionState;
   microphone: PermissionState;
   overlay: PermissionState;
 }
@@ -53,28 +52,6 @@ export interface Contact {
   name: string;
   numbers: string[];
   photoUri?: string;
-}
-
-export interface SMSThread {
-  id: string;
-  snippet: string;
-  date: number;
-  msgCount: number;
-  address: string;
-  contactName?: string;
-}
-
-export enum SMSType {
-  INCOMING = 'INCOMING',
-  OUTGOING = 'OUTGOING',
-}
-
-export interface SMSMessage {
-  id: string;
-  address: string;
-  body: string;
-  date: number;
-  type: SMSType;
 }
 
 export enum CallOverlayStatus {
@@ -147,29 +124,6 @@ export interface CallManagerPlugin {
    * Web: Throws Unimplemented.
    */
   getContacts(options: { search?: string; limit?: number; offset?: number }): Promise<{ contacts: Contact[]; total: number }>;
-
-  // --- SMS ---
-
-  /**
-   * Retrieve SMS threads/conversations.
-   * Android: Requires `sms` permission.
-   * iOS: Restricted API; gracefully returns empty array.
-   */
-  getSMSThreads(): Promise<{ threads: SMSThread[] }>;
-
-  /**
-   * Retrieve individual SMS messages for a given thread.
-   * Android: Requires `sms` permission.
-   * iOS: Restricted API; gracefully returns empty array.
-   */
-  getSMSMessages(options: { threadId: string }): Promise<{ messages: SMSMessage[] }>;
-
-  /**
-   * Send a direct SMS without UI.
-   * Android: Requires `sms` permission.
-   * iOS: Restricted API; Rejects promise with UNAVAILABLE.
-   */
-  sendSMS(options: { number: string; message: string }): Promise<void>;
 
   // --- Recording ---
 

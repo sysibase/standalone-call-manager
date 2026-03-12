@@ -1,18 +1,17 @@
 # Capacitor Call Manager 📱
 
-A powerful standalone Capacitor plugin for **Android** and **iOS** that provides comprehensive telephony features including Call Logs, SMS management, Contacts, and a sophisticated CRM Overlay system.
+A powerful standalone Capacitor plugin specifically for **Android** that provides comprehensive telephony features including Call Logs, Contacts, and a sophisticated CRM Overlay system.
 
 ---
 
 ## 🚀 Features
 
-- 📞 **Call Logs (Android only)**: Retrieve full call history with contact name lookup and filtering.
-- 💬 **SMS Manager (Android only)**: Read message threads, fetch conversations, and send direct SMS.
-- 👥 **Contacts (Cross-platform)**: High-speed contact list access with search.
-- 📱 **CRM Overlay (Android only)**: 
+- 📞 **Call Logs**: Retrieve full call history with contact name lookup and filtering.
+- 👥 **Contacts**: High-speed contact list access with search.
+- 📱 **CRM Overlay**: 
     - **During Call Badge**: Floating indicator for active counseling sessions.
     - **After Call Form**: Professional form for quick notes and interest status.
-- 🎙️ **Recording (Android only)**: Experimental call recording.
+- 🎙️ **Recording**: Experimental call recording.
 - 🔊 **Call Events**: Detect incoming, started, and ended calls in real-time.
 
 ---
@@ -22,22 +21,19 @@ A powerful standalone Capacitor plugin for **Android** and **iOS** that provides
 ### 1. Install the Package
 Run the following command in your project root:
 ```bash
-npm install https://github.com/ibase/capacitor-call-manager.git
+npm install capacitor-call-manager
 ```
 
 ### 2. Platform Configuration
 
 #### Android Setup
-1. Open `android/app/src/main/java/***/MainActivity.java`.
-2. Ensure the plugin is registered (Capacitor 6+ does this automatically, but for older versions, add `registerPlugin(CallManagerPlugin.class)`).
-3. **Overlay Permission**: The user must manually grant "Display over other apps" for the CRM form to appear.
+No Java/Kotlin code is required! Capacitor 6+ handles `@CapacitorPlugin` auto-registration completely. 
 
-#### iOS Setup
-Add the following key to your `ios/App/App/Info.plist`:
-```xml
-<key>NSContactsUsageDescription</key>
-<string>We need access to contacts to identify callers and manage your dialer.</string>
-```
+**Requirements:**
+- Android 12+ (API 31 and above).
+
+**Overlay Permission**:
+The user must manually grant "Display over other apps" for the CRM form to appear natively during/after calls. Use `CallManager.requestOverlayPermission()` to prompt them.
 
 ---
 
@@ -59,7 +55,7 @@ async function setupTelephony() {
 }
 ```
 
-### 2. Monitoring Call Events (Android)
+### 2. Monitoring Call Events
 Start the listener to receive real-time updates and trigger the CRM overlay.
 
 ```typescript
@@ -80,7 +76,7 @@ CallManager.addListener('callOverlaySubmitted', (data) => {
 
 ### 3. Fetching Data
 
-#### Call Logs (Android)
+#### Call Logs
 ```typescript
 const { logs } = await CallManager.getCallLogs({ 
   limit: 20, 
@@ -89,35 +85,24 @@ const { logs } = await CallManager.getCallLogs({
 });
 ```
 
-#### Contacts (iOS & Android)
+#### Contacts
 ```typescript
 const { contacts } = await CallManager.getContacts({ search: 'John' });
-```
-
-#### SMS (Android)
-```typescript
-// Get conversations
-const { threads } = await CallManager.getSMSThreads();
-
-// Send a message
-await CallManager.sendSMS({ 
-  number: '9876543210', 
-  message: 'Hello from Ibase Dialer!' 
-});
 ```
 
 ---
 
 ## 🛡️ Platform Limitations
 
-| Feature | Android | iOS |
-| :--- | :---: | :---: |
-| Call Logs | ✅ | ❌ (Privacy Restricted) |
-| Read SMS | ✅ | ❌ (Privacy Restricted) |
-| CRM Overlay | ✅ | ❌ (Not Supported by iOS) |
-| Contacts | ✅ | ✅ |
-| Initiate Call | ✅ | ✅ |
-| Recording | ✅ | ❌ |
+| Feature | Android |
+| :--- | :---: |
+| Call Logs | ✅ |
+| CRM Overlay | ✅ |
+| Contacts | ✅ |
+| Initiate Call | ✅ |
+| Recording | ✅ |
+
+*Note: iOS is not supported.*
 
 ---
 

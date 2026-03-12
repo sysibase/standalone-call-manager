@@ -9,14 +9,13 @@
   "files": [
     "android/",
     "dist/",
-    "src/",
-    "CapacitorCallManager.podspec"
+    "src/"
   ],
-  "author": "Ibase",
+  "author": "Open Source Contributors",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ibase/capacitor-call-manager.git"
+    "url": "https://github.com/your-username/capacitor-call-manager.git"
   },
   "keywords": [
     "capacitor",
@@ -25,23 +24,19 @@
     "telephony",
     "call-manager",
     "call-logs",
-    "sms",
     "contacts",
     "overlay"
   ],
   "bugs": {
-    "url": "https://github.com/ibase/capacitor-call-manager/issues"
+    "url": "https://github.com/your-username/capacitor-call-manager/issues"
   },
-  "homepage": "https://github.com/ibase/capacitor-call-manager#readme",
+  "homepage": "https://github.com/your-username/capacitor-call-manager#readme",
   "peerDependencies": {
     "@capacitor/core": "^6.0.0 || ^7.0.0"
   },
   "capacitor": {
     "android": {
       "path": "android"
-    },
-    "ios": {
-      "path": "ios"
     }
   },
   "scripts": {
@@ -55,7 +50,6 @@
   "devDependencies": {
     "@capacitor/android": "^6.0.0",
     "@capacitor/core": "^6.0.0",
-    "@capacitor/ios": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "rimraf": "^6.0.1",
     "typescript": "~5.4.2",

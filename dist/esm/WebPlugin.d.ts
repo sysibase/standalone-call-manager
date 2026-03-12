@@ -1,5 +1,5 @@
 import { WebPlugin } from '@capacitor/core';
-import type { CallManagerPlugin, PermissionStatus, CallLog, GetCallLogsOptions, Contact, SMSThread, SMSMessage } from './definitions';
+import type { CallManagerPlugin, PermissionStatus, CallLog, GetCallLogsOptions, Contact } from './definitions';
 export declare class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
     checkPermissions(): Promise<PermissionStatus>;
     requestPermissions(): Promise<PermissionStatus>;
@@ -21,18 +21,6 @@ export declare class CallManagerWeb extends WebPlugin implements CallManagerPlug
         contacts: Contact[];
         total: number;
     }>;
-    getSMSThreads(): Promise<{
-        threads: SMSThread[];
-    }>;
-    getSMSMessages(_options: {
-        threadId: string;
-    }): Promise<{
-        messages: SMSMessage[];
-    }>;
-    sendSMS(_options: {
-        number: string;
-        message: string;
-    }): Promise<void>;
     startRecording(): Promise<void>;
     pauseRecording(): Promise<void>;
     resumeRecording(): Promise<void>;
