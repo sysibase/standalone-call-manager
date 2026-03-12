@@ -16,7 +16,6 @@ import android.view.WindowManager
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
-import com.getcapacitor.JSObject
 import android.webkit.WebViewClient
 import android.widget.*
 import androidx.core.app.NotificationCompat

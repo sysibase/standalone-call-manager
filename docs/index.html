@@ -307,7 +307,7 @@
     <header>
         <div class="container" style="justify-content: center;">
             <div style="text-align: center;">
-                <div class="badge" style="margin-bottom: 2rem; padding: 0.5rem 1.5rem; font-size: 0.9rem;">Version 1.0.7 Release</div>
+                <div class="badge" style="margin-bottom: 2rem; padding: 0.5rem 1.5rem; font-size: 0.9rem;">Version 1.0.8 Release</div>
                 <h1 class="hero-title">Capacitor Call Manager</h1>
                 <p class="hero-subtitle">Production-grade telephony & CRM infrastructure for modern Capacitor apps. Handle calls, contacts, and custom overlays with ease.</p>
                 <div style="display: flex; gap: 1rem; justify-content: center;">
@@ -364,6 +364,16 @@
                 <p>Install the package via NPM and sync your project.</p>
                 <pre><code>npm install capacitor-call-manager
 npx cap sync</code></pre>
+
+                <div class="feature-card" style="border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05);">
+                    <h3 style="color: #ef4444; margin-top: 0;">⚠️ Critical: Manual Setup Required</h3>
+                    <p>Android requires these permissions to be explicitly declared in your <b>Main App's</b> manifest. Capacitor will not auto-sync these.</p>
+                    <pre><code style="color: #ef4444;">&lt;!-- android/app/src/main/AndroidManifest.xml --&gt;
+&lt;uses-permission android:name="android.permission.READ_CALL_LOG" /&gt;
+&lt;uses-permission android:name="android.permission.READ_PHONE_STATE" /&gt;
+&lt;uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /&gt;
+&lt;uses-permission android:name="android.permission.POST_NOTIFICATIONS" /&gt;</code></pre>
+                </div>
             </section>
 
             <section id="quick-start">

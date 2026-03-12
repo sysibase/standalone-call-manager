@@ -41,12 +41,23 @@ npm install capacitor-call-manager
 npx cap sync
 ```
 
+> [!IMPORTANT]
+> **Manual Action Required**: Capacitor does NOT automatically add sensitive permissions to your main app's manifest. You must manually add them as shown below.
+
 ---
 
 ## 🛠️ Quick Start
 
-### 1. Permissions
-Add the following to your `AndroidManifest.xml` if not already present:
+### 1. Android Configuration (Manual)
+Add the following to your `android/app/src/main/AndroidManifest.xml` (Inside `<manifest>`, outside `<application>`):
+
+```xml
+<uses-permission android:name="android.permission.READ_CALL_LOG" />
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Android 13+ -->
+```
 ```xml
 <uses-permission android:name="android.permission.READ_CALL_LOG" />
 <uses-permission android:name="android.permission.READ_CONTACTS" />
