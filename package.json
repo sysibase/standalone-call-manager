@@ -1,0 +1,64 @@
+{
+  "name": "capacitor-call-manager",
+  "version": "1.0.0",
+  "description": "Standalone Capacitor plugin for Call Logs, SMS, Contacts and CRM Overlay",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "files": [
+    "android/",
+    "dist/",
+    "src/",
+    "CapacitorCallManager.podspec"
+  ],
+  "author": "Ibase",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ibase/capacitor-call-manager.git"
+  },
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "native",
+    "telephony",
+    "call-manager",
+    "call-logs",
+    "sms",
+    "contacts",
+    "overlay"
+  ],
+  "bugs": {
+    "url": "https://github.com/ibase/capacitor-call-manager/issues"
+  },
+  "homepage": "https://github.com/ibase/capacitor-call-manager#readme",
+  "peerDependencies": {
+    "@capacitor/core": "^6.0.0 || ^7.0.0"
+  },
+  "capacitor": {
+    "android": {
+      "path": "android"
+    },
+    "ios": {
+      "path": "ios"
+    }
+  },
+  "scripts": {
+    "verify": "npm run verify:android",
+    "verify:android": "cd android && ./gradlew clean build test && cd ..",
+    "build": "npm run clean && tsc && rollup -c rollup.config.mjs",
+    "clean": "rimraf dist",
+    "watch": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.4.2",
+    "rollup": "^4.12.0"
+  }
+}

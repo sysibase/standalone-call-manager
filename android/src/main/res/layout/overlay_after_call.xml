@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_after_call">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Call Session Result"
+                android:textSize="12sp"
+                android:textColor="#7B7BCC" />
+            <TextView
+                android:id="@+id/tvContactName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Contact Name"
+                android:textSize="20sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvCallDetails"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Number • Duration"
+                android:textSize="13sp"
+                android:textColor="#A0A0C0" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✕"
+            android:textSize="20sp"
+            android:textColor="#A0A0C0"
+            android:padding="10dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:weightSum="3">
+        
+        <Button
+            android:id="@+id/btnInterested"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="INTERESTED"
+            android:textSize="10sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_status_btn" />
+            
+        <Button
+            android:id="@+id/btnFollowUp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="FOLLOW UP"
+            android:textSize="10sp"
+            android:textColor="#F59E0B"
+            android:alpha="1.0"
+            android:background="@drawable/bg_status_btn" />
+            
+        <Button
+            android:id="@+id/btnNotInterested"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="NOT INTERESTED"
+            android:textSize="10sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_status_btn" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/etNotes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:hint="Notes..."
+        android:textColorHint="#555580"
+        android:textColor="#FFFFFF"
+        android:background="#2A2A4A"
+        android:padding="12dp"
+        android:minLines="3"
+        android:gravity="top|start" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SAVE DETAILS"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:background="@drawable/bg_save_btn" />
+</LinearLayout>

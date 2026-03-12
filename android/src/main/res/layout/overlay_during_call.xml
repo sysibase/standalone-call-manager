@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="12dp"
+    android:background="@drawable/bg_during_call">
+
+    <View
+        android:id="@+id/indicator"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/bg_indicator" />
+
+    <TextView
+        android:id="@+id/tvCallActive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Call Active"
+        android:textSize="14sp"
+        android:textColor="#FFFFFF" />
+</LinearLayout>
