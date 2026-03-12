@@ -9,11 +9,14 @@ import android.util.Log
  * ContactsHelper.kt — Android Contacts Query Helper
  * =============================================================================
  * Android ke ContactsContract se phone contacts efficiently query karta hai.
- *
- * FEATURES:
- *  - Contact list retrieval with multiple numbers per contact
- *  - Search filter (name ya number)
- *  - Contact photo URI support
+ * 
+ * DESIGN:
+ *  - Aik contact ke multiple numbers ho sakte hain, yeh helper unhe group kar deta hai.
+ *  - Search feature includes both Name and Phone Number matching.
+ * 
+ * PERFORMANCE:
+ *  - SQL-level selection use ki gayi hai taaki system resources kam use ho.
+ *  - 'use' block (try-with-resources) use kiya gaya hai taaki cursor leak na ho.
  * =============================================================================
  */
 object ContactsHelper {
@@ -27,6 +30,14 @@ object ContactsHelper {
         val photoUri: String?
     )
 
+    /**
+     * getContacts() — Contacts list fetch karne ke liye.
+     * 
+     * @param context Android context
+     * @param search Search string (optional)
+     * @param limit Maximum results (default 500)
+     * @param offset Pagination offset (default 0)
+     */
     fun getContacts(context: Context, search: String? = null, limit: Int = 500, offset: Int = 0): List<ContactEntry> {
         val contactsMap = mutableMapOf<String, ContactEntry>()
         val contentResolver = context.contentResolver
@@ -65,6 +76,7 @@ object ContactsHelper {
             while (c.moveToNext()) {
                 val contactId = c.getString(idIdx)
                 
+                // Pagination logic
                 if (contactId != currentContactId) {
                     currentContactId = contactId
                     if (!contactsMap.containsKey(contactId)) {
@@ -79,6 +91,7 @@ object ContactsHelper {
                 val number = c.getString(numberIdx) ?: ""
                 val photoUri = c.getString(photoIdx)
 
+                // Agar contact already map mein hai, to number add karo.
                 if (contactsMap.containsKey(contactId)) {
                     val existing = contactsMap[contactId]!!
                     if (!existing.numbers.contains(number)) {
@@ -95,7 +108,7 @@ object ContactsHelper {
             }
         }
 
-        Log.d(TAG, "getContacts returned ${contactsMap.size} unique contacts (search: $search)")
+        Log.d(TAG, "getContacts finished. Found ${contactsMap.size} entries.")
         return contactsMap.values.toList()
     }
 }

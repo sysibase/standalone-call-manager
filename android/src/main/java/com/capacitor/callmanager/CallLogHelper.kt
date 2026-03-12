@@ -12,6 +12,10 @@ import java.util.Calendar
  * CallLogHelper.kt — Android Call Log Query Helper
  * =============================================================================
  * Android ke CallLog.Calls.CONTENT_URI se call history efficiently query karta hai.
+ * 
+ * WHY THIS IS FAST?
+ *  - SQL-level filtering use karta hai taaki unnecessary records memory mein na aayein.
+ *  - Cursor-based processing hai (No memory spikes logic).
  *
  * FEATURES:
  *  - Type filter: INCOMING / OUTGOING / MISSED / ALL
@@ -169,7 +173,7 @@ object CallLogHelper {
     }
 
     // -------------------------------------------------------------------------
-    // Helper: Call type string ↔ Android int
+    // Helper: Call type string \u2194 Android int
     // -------------------------------------------------------------------------
 
     private fun callTypeToInt(type: String): Int? = when (type.uppercase()) {
@@ -178,7 +182,7 @@ object CallLogHelper {
         "MISSED"   -> CallLog.Calls.MISSED_TYPE
         "REJECTED" -> CallLog.Calls.REJECTED_TYPE
         "BLOCKED"  -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) CallLog.Calls.BLOCKED_TYPE else null
-        else       -> null // "ALL" → no filter
+        else       -> null // "ALL" \u2192 no filter
     }
 
     private fun intToCallType(type: Int): String = when (type) {
@@ -221,7 +225,7 @@ object CallLogHelper {
                 cal.add(Calendar.DAY_OF_YEAR, -30)
                 cal.timeInMillis
             }
-            else -> 0L // "ALL" → no date filter
+            else -> 0L // "ALL" \u2192 no date filter
         }
     }
 }
