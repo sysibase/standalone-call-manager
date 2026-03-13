@@ -21,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.cancel
-import java.io.File
 
 @CapacitorPlugin(
     name = "CallManager",
@@ -232,10 +231,10 @@ class CallManagerPlugin : Plugin() {
             if (shouldShow) {
                 launchCallOverlay(number, contactName ?: "", duration, CallOverlayService.MODE_AFTER_CALL, details)
             } else {
-                CallOverlayService.stop(context)
+                Log.d("CallManager", "Skipping after-call overlay for $number (SELECTED mode)")
             }
         } else {
-            CallOverlayService.stop(context)
+            Log.d("CallManager", "Missed call for $number, keeping service alive")
         }
     }
 
@@ -385,6 +384,14 @@ class CallManagerPlugin : Plugin() {
             try {
                 val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
                 prefs.edit().putBoolean("background_enabled", enabled).apply()
+                
+                if (enabled) {
+                    // Start service immediately in silent mode (no number)
+                    launchCallOverlay("", "", 0, "AFTER_CALL")
+                } else {
+                    CallOverlayService.stop(context)
+                }
+                
                 call.resolve(JSObject().apply { put("success", true) })
             } catch (e: Exception) {
                 call.reject("Failed to set background service status", e)
@@ -397,6 +404,32 @@ class CallManagerPlugin : Plugin() {
         execute {
             val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
             val enabled = prefs.getBoolean("background_enabled", true)
+            val res = JSObject()
+            res.put("success", true)
+            res.put("enabled", enabled)
+            call.resolve(res)
+        }
+    }
+
+    @PluginMethod
+    fun setAutoOpenAppEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", false) ?: false
+        execute {
+            try {
+                val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+                prefs.edit().putBoolean("auto_open_app", enabled).apply()
+                call.resolve(JSObject().apply { put("success", true) })
+            } catch (e: Exception) {
+                call.reject("Failed to set auto-open status", e)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun isAutoOpenAppEnabled(call: PluginCall) {
+        execute {
+            val prefs = context.getSharedPreferences("CallManagerConfig", android.content.Context.MODE_PRIVATE)
+            val enabled = prefs.getBoolean("auto_open_app", false)
             val res = JSObject()
             res.put("success", true)
             res.put("enabled", enabled)

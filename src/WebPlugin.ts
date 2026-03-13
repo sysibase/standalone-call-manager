@@ -67,6 +67,14 @@ export class CallManagerWeb extends WebPlugin implements CallManagerPlugin {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }
 
+  async setAutoOpenAppEnabled(_options: { enabled: boolean }): Promise<{ success: boolean }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
+  async isAutoOpenAppEnabled(): Promise<{ success: boolean; enabled: boolean }> {
+    throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+  }
+
   async setTrackingMode(_options: { mode: 'ALL' | 'SELECTED' }): Promise<{ success: boolean }> {
     throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
   }

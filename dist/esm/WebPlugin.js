@@ -77,6 +77,16 @@ export class CallManagerWeb extends WebPlugin {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
         });
     }
+    setAutoOpenAppEnabled(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
+    isAutoOpenAppEnabled() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);
+        });
+    }
     setTrackingMode(_options) {
         return __awaiter(this, void 0, void 0, function* () {
             throw new CapacitorException('Not implemented on web.', ExceptionCode.Unimplemented);

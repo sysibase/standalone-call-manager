@@ -186,6 +186,16 @@ export interface CallManagerPlugin {
   isBackgroundServiceEnabled(): Promise<{ success: boolean; enabled: boolean }>;
 
   /**
+   * Enable or disable auto-opening the app via deep link instead of showing overlay (Android only).
+   */
+  setAutoOpenAppEnabled(options: { enabled: boolean }): Promise<{ success: boolean }>;
+
+  /**
+   * Check if auto-open app feature is enabled.
+   */
+  isAutoOpenAppEnabled(): Promise<{ success: boolean; enabled: boolean }>;
+
+  /**
    * Set the tracking mode for overlays (Android only).
    * 'ALL' - Show overlay for every call.
    * 'SELECTED' - Only show for numbers in the tracked list.

@@ -53,6 +53,15 @@ export declare class CallManagerWeb extends WebPlugin implements CallManagerPlug
         success: boolean;
         enabled: boolean;
     }>;
+    setAutoOpenAppEnabled(_options: {
+        enabled: boolean;
+    }): Promise<{
+        success: boolean;
+    }>;
+    isAutoOpenAppEnabled(): Promise<{
+        success: boolean;
+        enabled: boolean;
+    }>;
     setTrackingMode(_options: {
         mode: 'ALL' | 'SELECTED';
     }): Promise<{

@@ -17,10 +17,16 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.webkit.WebViewAssetLoader
+import androidx.webkit.WebViewAssetLoader.AssetsPathHandler
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebResourceError
 import android.widget.*
 import androidx.core.app.NotificationCompat
 import com.getcapacitor.JSObject
 import java.net.URLEncoder
+import android.net.Uri
 
 /**
  * CallOverlayService — Floating CRM Portal
@@ -52,57 +58,126 @@ class CallOverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, buildNotification(), android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification())
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent ?: return START_NOT_STICKY
-        val nr = intent.getStringExtra("number") ?: ""
-        val name = intent.getStringExtra("name") ?: ""
-        val dur = intent.getIntExtra("duration", 0)
-        val entityType = intent.getStringExtra("entityType") ?: ""
-        val entityId = intent.getStringExtra("entityId") ?: ""
-        currentMode = intent.getStringExtra("mode") ?: MODE_AFTER_CALL
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) return START_NOT_STICKY
-        removeOverlay()
-        showOverlay(nr, name, dur, entityType, entityId)
-        return START_NOT_STICKY
+        val nr = intent?.getStringExtra("number") ?: ""
+        val name = intent?.getStringExtra("name") ?: ""
+        val dur = intent?.getIntExtra("duration", 0) ?: 0
+        val entityType = intent?.getStringExtra("entityType") ?: ""
+        val entityId = intent?.getStringExtra("entityId") ?: ""
+        currentMode = intent?.getStringExtra("mode") ?: MODE_AFTER_CALL
+        
+        Log.d("CallOverlayService", "onStartCommand: num=$nr, mode=$currentMode, dur=$dur")
+        
+        // Re-declare foreground to stay alive (Android 14)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, buildNotification(), android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification())
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+             Log.w("CallOverlayService", "Overlay permission missing, showing notification only")
+             return START_STICKY 
+        }
+
+        if (nr.isNotBlank()) {
+            removeOverlay()
+            showOverlay(nr, name, dur, entityType, entityId)
+        }
+        
+        return START_STICKY
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun showOverlay(number: String, name: String, duration: Int, entityType: String = "", entityId: String = "") {
         val prefs = getSharedPreferences("CallManagerConfig", MODE_PRIVATE)
         val targetPath = prefs.getString("overlay_url", null)
+        val autoOpen = prefs.getBoolean("auto_open_app", false)
+
+        if (autoOpen && number != "" && currentMode == MODE_AFTER_CALL) {
+            Log.d("CallOverlayService", "Auto-Open App Enabled: Triggering via Deep Link")
+            val encodedName = URLEncoder.encode(name, "UTF-8")
+            val deepLinkUrl = "ibase://overlay/after-call?source=app_link&number=$number&name=$encodedName&duration=$duration"
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUrl)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT) // Pull to front
+                setPackage(packageName)
+            }
+            try {
+                startActivity(intent)
+                removeOverlay()
+                return
+            } catch (e: Exception) {
+                Log.e("CallOverlayService", "Deep link failed", e)
+            }
+        }
         
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE
         
         if (!targetPath.isNullOrBlank()) {
+            val root = FrameLayout(this)
+            
+            // 1. WebView
             val webView = WebView(this).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.allowFileAccess = true
                 settings.allowContentAccess = true
-                setBackgroundColor(0x00000000) // Transparent
-                webViewClient = WebViewClient()
+                settings.databaseEnabled = true
+                setBackgroundColor(0) // Transparent
+                setLayerType(View.LAYER_TYPE_HARDWARE, null)
+                
+                val assetLoader = WebViewAssetLoader.Builder()
+                    .setDomain("appassets.androidplatform.net")
+                    .addPathHandler("/assets/", AssetsPathHandler(this@CallOverlayService))
+                    .build()
+
+                webViewClient = object : WebViewClient() {
+                    override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                        return assetLoader.shouldInterceptRequest(request.url)
+                    }
+
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        Log.d("CallOverlayService", "WebView loaded: $url")
+                    }
+
+                    override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                        Log.e("CallOverlayService", "WebView error: ${error.description} for ${request.url}")
+                        if (request.isForMainFrame) {
+                            Handler(Looper.getMainLooper()).post {
+                                Toast.makeText(this@CallOverlayService, "Overlay Error: ${error.description}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                }
+                
                 addJavascriptInterface(OverlayBridge(this@CallOverlayService), "CallManagerBridge")
                 
-                // Construct URL with query params
                 val encodedName = URLEncoder.encode(name, "UTF-8")
-                val encodedEntityType = URLEncoder.encode(entityType, "UTF-8")
-                val encodedEntityId = URLEncoder.encode(entityId, "UTF-8")
+                val queryParams = "source=overlay&number=$number&name=$encodedName&duration=$duration&mode=$currentMode"
                 
-                val queryParams = "number=$number&name=$encodedName&duration=$duration&mode=$currentMode&entityType=$encodedEntityType&entityId=$encodedEntityId"
+                // Select correct React route
+                val path = if (currentMode == MODE_DURING_CALL) "/overlay/during-call" else "/overlay/after-call"
+                val fullUrl = "https://appassets.androidplatform.net/assets/public/index.html?path=$path&$queryParams"
                 
-                val fullUrl = if (targetPath.contains("://")) {
-                    if (targetPath.contains("?")) "$targetPath&$queryParams" else "$targetPath?$queryParams"
-                } else {
-                    // Assume it's a relative path in the Capacitor app
-                    "http://localhost${if (targetPath.startsWith("/")) "" else "/"}$targetPath?$queryParams"
-                }
+                Log.d("CallOverlayService", "Loading URL: $fullUrl")
                 loadUrl(fullUrl)
             }
-            overlayView = webView
+            
+            root.apply {
+                setBackgroundColor(0) // Ensure FrameLayout is also transparent
+            }
+            root.addView(webView, FrameLayout.LayoutParams(-1, -1))
+            
+            overlayView = root
         } else {
             val inflater = LayoutInflater.from(this)
             val resId = resources.getIdentifier(if (currentMode == MODE_DURING_CALL) "overlay_during_call" else "overlay_after_call", "layout", packageName)
@@ -123,7 +198,11 @@ class CallOverlayService : Service() {
             width,
             height,
             type,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or 
+            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
+            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+            WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = if (currentMode == MODE_DURING_CALL) Gravity.TOP or Gravity.START else Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
@@ -135,7 +214,12 @@ class CallOverlayService : Service() {
         }
 
         try {
-            windowManager?.addView(overlayView, params)
+            if (overlayView?.parent == null) {
+                windowManager?.addView(overlayView, params)
+                Log.d("CallOverlayService", "Successfully added overlay view for $number")
+            } else {
+                Log.d("CallOverlayService", "Overlay view already added, skipping addView")
+            }
             CallManagerPlugin.instance?.emitOverlayLifecycleEvent("callOverlayOpened", number)
         } catch (e: Exception) {
             Log.e("CallOverlayService", "Failed to add overlay view", e)
@@ -164,9 +248,10 @@ class CallOverlayService : Service() {
                     } else {
                         savePendingSubmission(context, dataJson)
                     }
-                    stopSelf()
+                    
+                    val bgEnabled = getSharedPreferences("CallManagerConfig", MODE_PRIVATE).getBoolean("background_enabled", true)
+                    if (bgEnabled) removeOverlay() else stopSelf()
                 } catch (e: Exception) {
-                    // Agar koi error aata hai to console pe log hoga taaki debugging easy ho.
                     Log.e("CallOverlayService", "Failed to submit overlay result via bridge", e)
                 }
             }
@@ -174,7 +259,10 @@ class CallOverlayService : Service() {
 
         @JavascriptInterface
         fun close() {
-            Handler(Looper.getMainLooper()).post { stopSelf() }
+            val bgEnabled = getSharedPreferences("CallManagerConfig", MODE_PRIVATE).getBoolean("background_enabled", true)
+            Handler(Looper.getMainLooper()).post { 
+                if (bgEnabled) removeOverlay() else stopSelf() 
+            }
         }
 
         @JavascriptInterface
@@ -193,7 +281,9 @@ class CallOverlayService : Service() {
                     }
                     intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(intent)
-                    stopSelf()
+                    
+                    val bgEnabled = getSharedPreferences("CallManagerConfig", MODE_PRIVATE).getBoolean("background_enabled", true)
+                    if (bgEnabled) removeOverlay() else stopSelf()
                 } catch (e: Exception) {
                     Log.e("CallOverlayService", "Failed to open app via bridge", e)
                 }
@@ -218,7 +308,10 @@ class CallOverlayService : Service() {
 
         contactNameTv?.text = if (name.isNotBlank()) name else "Contact"
         callDetailsTv?.text = "$number • ${duration/60}m ${duration%60}s"
-        btnClose?.setOnClickListener { stopSelf() }
+        btnClose?.setOnClickListener { 
+            val bgEnabled = getSharedPreferences("CallManagerConfig", MODE_PRIVATE).getBoolean("background_enabled", true)
+            if (bgEnabled) removeOverlay() else stopSelf() 
+        }
 
         var selectedStatus = "FOLLOW_UP"
         val statusButtons = listOf(btnInterested, btnFollowUp, btnNotInterested)
@@ -259,7 +352,12 @@ class CallOverlayService : Service() {
             } else {
                 savePendingSubmission(this@CallOverlayService, submitData.toString())
             }
-            stopSelf()
+            val bgEnabled = getSharedPreferences("CallManagerConfig", MODE_PRIVATE).getBoolean("background_enabled", true)
+            if (bgEnabled) {
+                removeOverlay()
+            } else {
+                stopSelf()
+            }
         }
     }
 
@@ -310,7 +408,10 @@ class CallOverlayService : Service() {
                 val entityTag = if (entityType.isNotBlank() || entityId.isNotBlank()) " [$entityType: $entityId]" else ""
                 addView(TextView(this@CallOverlayService).apply { text = "$number • ${duration/60}m ${duration%60}s$entityTag"; textSize = 13f; setTextColor(Color.parseColor("#A0A0C0")) })
             })
-            addView(TextView(this@CallOverlayService).apply { text = "✕"; textSize = 20f; setTextColor(Color.parseColor("#A0A0C0")); setPadding(20,20,20,20); setOnClickListener { stopSelf() } })
+            addView(TextView(this@CallOverlayService).apply { text = "✕"; textSize = 20f; setTextColor(Color.parseColor("#A0A0C0")); setPadding(20,20,20,20); setOnClickListener { 
+                val bgEnabled = getSharedPreferences("CallManagerConfig", MODE_PRIVATE).getBoolean("background_enabled", true)
+                if (bgEnabled) removeOverlay() else stopSelf() 
+            } })
         }
         container.addView(top)
         var selectedStatus = "FOLLOW_UP"; val sButtons = mutableListOf<Button>()
@@ -338,7 +439,8 @@ class CallOverlayService : Service() {
                 } else {
                     savePendingSubmission(this@CallOverlayService, submitData.toString())
                 }
-                stopSelf()
+                val bgEnabled = getSharedPreferences("CallManagerConfig", MODE_PRIVATE).getBoolean("background_enabled", true)
+                if (bgEnabled) removeOverlay() else stopSelf()
             }
         })
         return container
@@ -347,6 +449,7 @@ class CallOverlayService : Service() {
     private fun removeOverlay() { 
         try { 
             overlayView?.let { 
+                Log.d("CallOverlayService", "Removing overlay view")
                 windowManager?.removeView(it)
                 if (it is WebView) {
                     it.stopLoading()
@@ -359,8 +462,22 @@ class CallOverlayService : Service() {
             Log.e("CallOverlayService", "Error removing overlay", e)
         } 
     }
-    private fun createNotificationChannel() { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel(CHANNEL_ID, "Overlay", NotificationManager.IMPORTANCE_LOW)) }
-    private fun buildNotification(): Notification = NotificationCompat.Builder(this, CHANNEL_ID).setContentTitle("CRM Overlay Active").setSmallIcon(android.R.drawable.ic_menu_call).setOngoing(true).build()
+    private fun createNotificationChannel() { 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = getSystemService(NotificationManager::class.java)
+            val channel = NotificationChannel(CHANNEL_ID, "Ibase Call Service", NotificationManager.IMPORTANCE_HIGH)
+            channel.description = "Persistent background service for incoming calls"
+            manager.createNotificationChannel(channel)
+        }
+    }
+    private fun buildNotification(): Notification = NotificationCompat.Builder(this, CHANNEL_ID)
+        .setContentTitle("Ibase Overlay Active")
+        .setContentText("Listening for calls...")
+        .setSmallIcon(android.R.drawable.ic_menu_call)
+        .setOngoing(true)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setCategory(Notification.CATEGORY_SERVICE)
+        .build()
     override fun onBind(intent: Intent?) = null
     override fun onDestroy() { super.onDestroy(); removeOverlay() }
 

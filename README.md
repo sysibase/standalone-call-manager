@@ -49,22 +49,43 @@ npx cap sync
 ## 🛠️ Quick Start
 
 ### 1. Android Configuration (Manual)
-Add the following to your `android/app/src/main/AndroidManifest.xml` (Inside `<manifest>`, outside `<application>`):
+Add the following to your `android/app/src/main/AndroidManifest.xml`. This template handles standard Capacitor permissions, Android 14+ background services, and Deep Linking.
 
 ```xml
-<uses-permission android:name="android.permission.READ_CALL_LOG" />
-<uses-permission android:name="android.permission.READ_PHONE_STATE" />
-<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Android 13+ -->
-```
-```xml
-<uses-permission android:name="android.permission.READ_CALL_LOG" />
-<uses-permission android:name="android.permission.READ_CONTACTS" />
-<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-<uses-permission android:name="android.permission.READ_PHONE_STATE" />
-<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Android 13+ -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 1. Permissions -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application ...>
+        <!-- 2. Main Activity with Deep Link Support (ibase://) -->
+        <activity android:name=".MainActivity" ...>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ibase" />
+            </intent-filter>
+        </activity>
+
+        <!-- 3. Plugin Components (Direct Boot Aware) -->
+        <receiver android:name="com.capacitor.callmanager.CallStateReceiver" android:exported="true" android:directBootAware="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name="com.capacitor.callmanager.CallOverlayService" android:foregroundServiceType="specialUse" android:exported="false" android:directBootAware="true">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="callOverlay" />
+        </service>
+    </application>
+</manifest>
 ```
 
 ### 2. Basic Setup (Telephony)
@@ -99,8 +120,13 @@ The CRM Overlay is a floating UI that appears during or after calls.
 // Enable Global Mode (Works even when app is closed) - Default
 await CallManager.setBackgroundServiceEnabled({ enabled: true });
 
-// Disable Global Mode (Overlays will ONLY appear if app is open)
-await CallManager.setBackgroundServiceEnabled({ enabled: false });
+// Check if enabled
+const { enabled } = await CallManager.isBackgroundServiceEnabled();
+
+// --- NEW in v1.0.11: Auto-Open App Mode ---
+// Instead of showing an overlay, you can force the main app to open 
+// via deep link (ibase://) immediately when a call ends.
+await CallManager.setAutoOpenAppEnabled({ enabled: true });
 ```
 
 ### Capturing Submissions
@@ -140,11 +166,11 @@ Check out the [**Native XML Guide**](./brain/CUSTOM_UI.md).
 | `getCallLogs(options)` | Retrieve device call history. | Android |
 | `getContacts(search)` | Search and fetch contacts. | Android |
 | `addTrackedNumbers(items)`| Add numbers with metadata (Entity/ID) to whitelist. | Android |
-| `getTrackedNumbersByEntity()`| Fetch tracked items by category/entity type. | Android |
-| `getTrackedNumbersByEntityId()`| Fetch tracked items by specific unique entity ID. | Android |
+| `setBackgroundServiceEnabled()`| Toggle background monitoring engine. | Android |
+| `setAutoOpenAppEnabled()`| **New**: Open app via Deep Link instead of overlay. | Android |
 | `showOverlay(data)` | Manually trigger the CRM popup. | Android |
 | `getPendingSubmissions()` | Retrieve submissions from offline mode. | Android |
-| `removeTrackedNumbersByEntity()`| Surgical cleanup of local database. | Android |
+| `removeTrackedNumbersByEntity()`| Surgical cleanup of local database by category. | Android |
 | `removeTrackedNumbersByEntityId()`| Remove specific entity data by ID. | Android |
 
 ---

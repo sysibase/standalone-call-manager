@@ -307,7 +307,7 @@
     <header>
         <div class="container" style="justify-content: center;">
             <div style="text-align: center;">
-                <div class="badge" style="margin-bottom: 2rem; padding: 0.5rem 1.5rem; font-size: 0.9rem;">Version 1.0.9 Release</div>
+                <div class="badge" style="margin-bottom: 2rem; padding: 0.5rem 1.5rem; font-size: 0.9rem;">Version 1.0.11 Release</div>
                 <h1 class="hero-title">Capacitor Call Manager</h1>
                 <p class="hero-subtitle">Production-grade telephony & CRM infrastructure for modern Capacitor apps. Handle calls, contacts, and custom overlays with ease.</p>
                 <div style="display: flex; gap: 1rem; justify-content: center;">
@@ -367,12 +367,40 @@ npx cap sync</code></pre>
 
                 <div class="feature-card" style="border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05);">
                     <h3 style="color: #ef4444; margin-top: 0;">⚠️ Critical: Manual Setup Required</h3>
-                    <p>Android requires these permissions to be explicitly declared in your <b>Main App's</b> manifest. Capacitor will not auto-sync these.</p>
+                    <p>Android 14+ requires these permissions and component registrations to be explicitly declared in your <b>Main App's</b> manifest. Capacitor will not auto-sync these.</p>
                     <pre><code style="color: #ef4444;">&lt;!-- android/app/src/main/AndroidManifest.xml --&gt;
-&lt;uses-permission android:name="android.permission.READ_CALL_LOG" /&gt;
-&lt;uses-permission android:name="android.permission.READ_PHONE_STATE" /&gt;
-&lt;uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /&gt;
-&lt;uses-permission android:name="android.permission.POST_NOTIFICATIONS" /&gt;</code></pre>
+&lt;manifest ...&gt;
+    &lt;uses-permission android:name="android.permission.READ_CALL_LOG" /&gt;
+    &lt;uses-permission android:name="android.permission.READ_PHONE_STATE" /&gt;
+    &lt;uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /&gt;
+    &lt;uses-permission android:name="android.permission.POST_NOTIFICATIONS" /&gt;
+    &lt;uses-permission android:name="android.permission.FOREGROUND_SERVICE" /&gt;
+    &lt;uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" /&gt;
+
+    &lt;application ...&gt;
+        &lt;!-- Deep Link Support (ibase://) --&gt;
+        &lt;activity android:name=".MainActivity" ...&gt;
+            &lt;intent-filter&gt;
+                &lt;action android:name="android.intent.action.VIEW" /&gt;
+                &lt;category android:name="android.intent.category.DEFAULT" /&gt;
+                &lt;category android:name="android.intent.category.BROWSABLE" /&gt;
+                &lt;data android:scheme="ibase" /&gt;
+            &lt;/intent-filter&gt;
+        &lt;/activity&gt;
+
+        &lt;!-- Plugin Components --&gt;
+        &lt;receiver android:name="com.capacitor.callmanager.CallStateReceiver" android:exported="true" android:directBootAware="true"&gt;
+            &lt;intent-filter&gt;
+                &lt;action android:name="android.intent.action.PHONE_STATE" /&gt;
+                &lt;action android:name="android.intent.action.BOOT_COMPLETED" /&gt;
+            &lt;/intent-filter&gt;
+        &lt;/receiver&gt;
+
+        &lt;service android:name="com.capacitor.callmanager.CallOverlayService" android:foregroundServiceType="specialUse" android:exported="false" android:directBootAware="true"&gt;
+            &lt;property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="callOverlay" /&gt;
+        &lt;/service&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;</code></pre>
                 </div>
             </section>
 
@@ -457,7 +485,17 @@ async function setup() {
                             <tr>
                                 <td><code>setBackgroundServiceEnabled</code></td>
                                 <td><code>Promise<{success}></code></td>
-                                <td>Toggles Global vs App-Only mode for background task.</td>
+                                <td>Toggles Global vs App-Only mode for background monitoring.</td>
+                            </tr>
+                            <tr>
+                                <td><code>setAutoOpenAppEnabled</code></td>
+                                <td><code>Promise<{success}></code></td>
+                                <td><b>New</b>: Open main app via Deep Link (ibase://) instead of overlay.</td>
+                            </tr>
+                            <tr>
+                                <td><code>isAutoOpenAppEnabled</code></td>
+                                <td><code>Promise<{success, enabled}></code></td>
+                                <td>Check if auto-opening app feature is currently enabled.</td>
                             </tr>
                         </tbody>
                     </table>

@@ -80,6 +80,16 @@ class CallManagerWeb extends core.WebPlugin {
             throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
         });
     }
+    setAutoOpenAppEnabled(_options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
+    isAutoOpenAppEnabled() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);
+        });
+    }
     setTrackingMode(_options) {
         return __awaiter(this, void 0, void 0, function* () {
             throw new core.CapacitorException('Not implemented on web.', core.ExceptionCode.Unimplemented);

@@ -31,28 +31,54 @@ class CallStateReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != "android.intent.action.PHONE_STATE") return
-        val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE) ?: return
+        val action = intent.action ?: return
+        val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE) ?: ""
         val number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER) ?: ""
+        
+        Log.d("CallStateReceiver", "onReceive: action=$action, state=$state, hasNumber=${number.isNotBlank()}")
+        
+        val phonePerm = context.checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val logPerm = context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        Log.d("CallStateReceiver", "Permissions: READ_PHONE_STATE=$phonePerm, READ_CALL_LOG=$logPerm")
+
+        if (action != "android.intent.action.PHONE_STATE") return
+        if (state.isBlank()) return
+        
         val plugin = CallManagerPlugin.instance
+        val prefs = context.getSharedPreferences("CallStateTemp", Context.MODE_PRIVATE)
 
         when (state) {
             TelephonyManager.EXTRA_STATE_RINGING -> {
                 if (number.isNotBlank()) incomingNumber = number
                 isIncoming = true; callStartTime = 0L; lastState = TelephonyManager.EXTRA_STATE_RINGING
                 plugin?.emitCallIncoming(incomingNumber, null)
+                
+                // Persist ringing state to survive process death
+                prefs.edit().apply {
+                    putString("last_number", incomingNumber)
+                    putBoolean("was_ringing", true)
+                    putBoolean("is_incoming", true)
+                    apply()
+                }
             }
             TelephonyManager.EXTRA_STATE_OFFHOOK -> {
-                if (lastState != TelephonyManager.EXTRA_STATE_RINGING) {
+                val wasRingingStored = prefs.getBoolean("was_ringing", false)
+                val storedNumber = prefs.getString("last_number", "") ?: ""
+                
+                if (lastState != TelephonyManager.EXTRA_STATE_RINGING && !wasRingingStored) {
                     isIncoming = false; if (number.isNotBlank()) incomingNumber = number
+                } else if (incomingNumber.isBlank()) {
+                    incomingNumber = storedNumber
                 }
+
                 callStartTime = System.currentTimeMillis(); lastState = TelephonyManager.EXTRA_STATE_OFFHOOK
                 plugin?.emitCallStarted(incomingNumber, null, callStartTime)
                 
-                // Persist state to handle process death during a long call
-                context.getSharedPreferences("CallStateTemp", Context.MODE_PRIVATE).edit().apply {
+                // Persist offhook state
+                prefs.edit().apply {
                     putString("last_number", incomingNumber)
                     putLong("last_start_time", callStartTime)
+                    putBoolean("was_offhook", true)
                     apply()
                 }
 
@@ -62,11 +88,17 @@ class CallStateReceiver : BroadcastReceiver() {
                 }
             }
             TelephonyManager.EXTRA_STATE_IDLE -> {
-                val wasOffhook = lastState == TelephonyManager.EXTRA_STATE_OFFHOOK
-                val wasRinging = lastState == TelephonyManager.EXTRA_STATE_RINGING
+                val wasOffhookStored = prefs.getBoolean("was_offhook", false)
+                val wasRingingStored = prefs.getBoolean("was_ringing", false)
+                val isIncomingStored = prefs.getBoolean("is_incoming", false)
+                
+                val wasOffhook = lastState == TelephonyManager.EXTRA_STATE_OFFHOOK || wasOffhookStored
+                val wasRinging = lastState == TelephonyManager.EXTRA_STATE_RINGING || wasRingingStored
+                val isActuallyIncoming = isIncoming || isIncomingStored
+                
+                if (!wasOffhook && !wasRinging) return // Ignore duplicate IDLE intents
                 
                 if (wasOffhook) {
-                    val prefs = context.getSharedPreferences("CallStateTemp", Context.MODE_PRIVATE)
                     val savedNumber = prefs.getString("last_number", "") ?: ""
                     val savedStartTime = prefs.getLong("last_start_time", 0L)
                     
@@ -82,15 +114,17 @@ class CallStateReceiver : BroadcastReceiver() {
                         val details = CallFilterDatabase.getInstance(context).getDetails(finalNumber)
                         launchNativeOverlayTrigger(context, finalNumber, duration, "AFTER_CALL", details)
                     }
-                    
-                    // Cleanup persisted state
-                    prefs.edit().clear().apply()
-                } else if (wasRinging && isIncoming) {
+                } else if (wasRinging && isActuallyIncoming) {
                     plugin?.emitCallEnded(incomingNumber, null, 0L, System.currentTimeMillis())
                 } else {
-                    CallOverlayService.stop(context)
+                    val bgEnabled = context.getSharedPreferences("CallManagerConfig", Context.MODE_PRIVATE).getBoolean("background_enabled", true)
+                    if (!bgEnabled) {
+                        CallOverlayService.stop(context)
+                    }
                 }
                 
+                // Cleanup all persisted state for this call
+                prefs.edit().clear().apply()
                 lastState = TelephonyManager.EXTRA_STATE_IDLE; incomingNumber = ""; callStartTime = 0L; isIncoming = false
             }
         }
@@ -138,10 +172,15 @@ class CallStateReceiver : BroadcastReceiver() {
             }
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-        } else {
-            context.startService(intent)
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+            Log.d("CallManager", "Successfully requested service start for mode $mode")
+        } catch (e: Exception) {
+            Log.e("CallManager", "FAILED to start foreground service: ${e.message}", e)
         }
     }
 }
