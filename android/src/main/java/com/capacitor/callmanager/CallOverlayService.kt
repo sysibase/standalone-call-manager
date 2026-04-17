@@ -69,11 +69,12 @@ class CallOverlayService : Service() {
         val nr = intent?.getStringExtra("number") ?: ""
         val name = intent?.getStringExtra("name") ?: ""
         val dur = intent?.getIntExtra("duration", 0) ?: 0
+        val type = intent?.getStringExtra("type") ?: "UNKNOWN"
         val entityType = intent?.getStringExtra("entityType") ?: ""
         val entityId = intent?.getStringExtra("entityId") ?: ""
         currentMode = intent?.getStringExtra("mode") ?: MODE_AFTER_CALL
         
-        Log.d("CallOverlayService", "onStartCommand: num=$nr, mode=$currentMode, dur=$dur")
+        Log.d("CallOverlayService", "onStartCommand: num=$nr, mode=$currentMode, dur=$dur, type=$type")
         
         // Re-declare foreground to stay alive (Android 14)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -89,14 +90,14 @@ class CallOverlayService : Service() {
 
         if (nr.isNotBlank()) {
             removeOverlay()
-            showOverlay(nr, name, dur, entityType, entityId)
+            showOverlay(nr, name, dur, type, entityType, entityId)
         }
         
         return START_STICKY
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun showOverlay(number: String, name: String, duration: Int, entityType: String = "", entityId: String = "") {
+    private fun showOverlay(number: String, name: String, duration: Int, callType: String = "UNKNOWN", entityType: String = "", entityId: String = "") {
         val prefs = getSharedPreferences("CallManagerConfig", MODE_PRIVATE)
         val targetPath = prefs.getString("overlay_url", null)
         val autoOpen = prefs.getBoolean("auto_open_app", false)
@@ -162,7 +163,7 @@ class CallOverlayService : Service() {
                 addJavascriptInterface(OverlayBridge(this@CallOverlayService), "CallManagerBridge")
                 
                 val encodedName = URLEncoder.encode(name, "UTF-8")
-                val queryParams = "source=overlay&number=$number&name=$encodedName&duration=$duration&mode=$currentMode"
+                val queryParams = "source=overlay&number=$number&name=$encodedName&duration=$duration&type=$callType&mode=$currentMode"
                 
                 // Select correct React route
                 val path = if (currentMode == MODE_DURING_CALL) "/overlay/during-call" else "/overlay/after-call"

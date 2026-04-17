@@ -178,6 +178,7 @@ class CallManagerPlugin : Plugin() {
         val data = JSObject().apply { 
             put("number", number)
             put("name", name ?: details?.name ?: getContactNameByNumber(number) ?: "")
+            put("type", "INCOMING")
             put("entityType", details?.entityType ?: "")
             put("entityId", details?.entityId ?: "")
             put("timestamp", System.currentTimeMillis()) 
@@ -185,12 +186,13 @@ class CallManagerPlugin : Plugin() {
         notifyListeners("callIncoming", data)
     }
 
-    fun emitCallStarted(number: String, name: String?, startTime: Long) {
+    fun emitCallStarted(number: String, name: String?, startTime: Long, isIncoming: Boolean) {
         val details = CallFilterDatabase.getInstance(context).getDetails(number)
         val contactName = name ?: details?.name ?: getContactNameByNumber(number)
         val data = JSObject().apply { 
             put("number", number)
             put("name", contactName ?: "")
+            put("type", if (isIncoming) "INCOMING" else "OUTGOING")
             put("entityType", details?.entityType ?: "")
             put("entityId", details?.entityId ?: "")
             put("startTime", startTime) 
@@ -202,19 +204,20 @@ class CallManagerPlugin : Plugin() {
         val shouldShow = trackingMode == "ALL" || details != null
         
         if (shouldShow) {
-            launchCallOverlay(number, contactName ?: "", 0, CallOverlayService.MODE_DURING_CALL, details)
+            launchCallOverlay(number, contactName ?: "", 0, CallOverlayService.MODE_DURING_CALL, if (isIncoming) "INCOMING" else "OUTGOING", details)
         } else {
             Log.d("CallManager", "Skipping overlay for $number based on tracking mode: $trackingMode")
         }
     }
 
-    fun emitCallEnded(number: String, name: String?, startTime: Long, endTime: Long) {
+    fun emitCallEnded(number: String, name: String?, startTime: Long, endTime: Long, isIncoming: Boolean) {
         val details = CallFilterDatabase.getInstance(context).getDetails(number)
         val contactName = name ?: details?.name ?: getContactNameByNumber(number)
         val duration = ((endTime - startTime) / 1000).toInt()
         val data = JSObject().apply { 
             put("number", number)
             put("name", contactName ?: "")
+            put("type", if (isIncoming) "INCOMING" else "OUTGOING")
             put("entityType", details?.entityType ?: "")
             put("entityId", details?.entityId ?: "")
             put("startTime", startTime)
@@ -229,7 +232,7 @@ class CallManagerPlugin : Plugin() {
 
         if (startTime > 0) {
             if (shouldShow) {
-                launchCallOverlay(number, contactName ?: "", duration, CallOverlayService.MODE_AFTER_CALL, details)
+                launchCallOverlay(number, contactName ?: "", duration, CallOverlayService.MODE_AFTER_CALL, if (isIncoming) "INCOMING" else "OUTGOING", details)
             } else {
                 Log.d("CallManager", "Skipping after-call overlay for $number (SELECTED mode)")
             }
@@ -254,13 +257,14 @@ class CallManagerPlugin : Plugin() {
         notifyListeners(event, data)
     }
 
-    private fun launchCallOverlay(number: String, name: String, duration: Int, mode: String, details: CallFilterDatabase.TrackedItem? = null) {
+    private fun launchCallOverlay(number: String, name: String, duration: Int, mode: String, type: String = "UNKNOWN", details: CallFilterDatabase.TrackedItem? = null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(context)) return
         val intent = Intent(context, CallOverlayService::class.java).apply { 
             putExtra("number", number)
             putExtra("name", name)
             putExtra("duration", duration)
             putExtra("mode", mode)
+            putExtra("type", type)
             if (details != null) {
                 putExtra("entityType", details.entityType)
                 putExtra("entityId", details.entityId)
@@ -298,8 +302,9 @@ class CallManagerPlugin : Plugin() {
         val name = call.getString("name", "") ?: ""
         val duration = call.getInt("duration", 0) ?: 0
         val mode = call.getString("mode", "AFTER_CALL") ?: "AFTER_CALL"
+        val type = call.getString("type", "UNKNOWN") ?: "UNKNOWN"
         
-        launchCallOverlay(number, name, duration, mode)
+        launchCallOverlay(number, name, duration, mode, type)
         call.resolve(JSObject().apply { put("success", true) })
     }
 

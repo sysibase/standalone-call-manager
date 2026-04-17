@@ -72,7 +72,7 @@ class CallStateReceiver : BroadcastReceiver() {
                 }
 
                 callStartTime = System.currentTimeMillis(); lastState = TelephonyManager.EXTRA_STATE_OFFHOOK
-                plugin?.emitCallStarted(incomingNumber, null, callStartTime)
+                plugin?.emitCallStarted(incomingNumber, null, callStartTime, isIncoming)
                 
                 // Persist offhook state
                 prefs.edit().apply {
@@ -84,7 +84,7 @@ class CallStateReceiver : BroadcastReceiver() {
 
                 if (plugin == null) {
                     val details = CallFilterDatabase.getInstance(context).getDetails(incomingNumber)
-                    launchNativeOverlayTrigger(context, incomingNumber, 0, "DURING_CALL", details)
+                    launchNativeOverlayTrigger(context, incomingNumber, 0, "DURING_CALL", isIncoming, details)
                 }
             }
             TelephonyManager.EXTRA_STATE_IDLE -> {
@@ -108,14 +108,14 @@ class CallStateReceiver : BroadcastReceiver() {
                     val endTime = System.currentTimeMillis()
                     val duration = if (finalStartTime > 0) ((endTime - finalStartTime) / 1000).toInt() else 0
                     
-                    plugin?.emitCallEnded(finalNumber, null, finalStartTime, endTime)
+                    plugin?.emitCallEnded(finalNumber, null, finalStartTime, endTime, isActuallyIncoming)
                     
                     if (plugin == null) {
                         val details = CallFilterDatabase.getInstance(context).getDetails(finalNumber)
-                        launchNativeOverlayTrigger(context, finalNumber, duration, "AFTER_CALL", details)
+                        launchNativeOverlayTrigger(context, finalNumber, duration, "AFTER_CALL", isActuallyIncoming, details)
                     }
                 } else if (wasRinging && isActuallyIncoming) {
-                    plugin?.emitCallEnded(incomingNumber, null, 0L, System.currentTimeMillis())
+                    plugin?.emitCallEnded(incomingNumber, null, 0L, System.currentTimeMillis(), true)
                 } else {
                     val bgEnabled = context.getSharedPreferences("CallManagerConfig", Context.MODE_PRIVATE).getBoolean("background_enabled", true)
                     if (!bgEnabled) {
@@ -130,7 +130,7 @@ class CallStateReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun launchNativeOverlayTrigger(context: Context, number: String, duration: Int, mode: String, details: CallFilterDatabase.TrackedItem? = null) {
+    private fun launchNativeOverlayTrigger(context: Context, number: String, duration: Int, mode: String, isIncomingCall: Boolean, details: CallFilterDatabase.TrackedItem? = null) {
         val prefs = context.getSharedPreferences("CallManagerConfig", Context.MODE_PRIVATE)
         val backgroundEnabled = prefs.getBoolean("background_enabled", true)
         
@@ -166,6 +166,7 @@ class CallStateReceiver : BroadcastReceiver() {
             putExtra("name", contactName)
             putExtra("duration", duration)
             putExtra("mode", mode)
+            putExtra("type", if (isIncomingCall) "INCOMING" else "OUTGOING")
             if (details != null) {
                 putExtra("entityType", details.entityType)
                 putExtra("entityId", details.entityId)
